@@ -6,8 +6,10 @@
 * secure
   * http redirects to https
   * self signed cert ok
+    * how to get certs onto the container?
 * automated testing of infrastructure
 * scripts only (no manual config)
+
 
 ### Coding
 [regex/file parsing](https://www.hackerrank.com/challenges/validating-credit-card-number/problem)
@@ -24,6 +26,12 @@
 * [nginx on docker](https://www.digitalocean.com/community/tutorials/how-to-run-nginx-in-a-docker-container-on-ubuntu-14-04)
 * [nginx config](http://nginx.org/en/docs/beginners_guide.html)
 * [secure nginx](https://www.cyberciti.biz/tips/linux-unix-bsd-nginx-webserver-security.html)
+* [intro to nginx](https://carrot.is/coding/nginx_introduction)
+
+
+* [gist with comments](https://gist.github.com/plentz/6737338)
+* [securing nginx with nice explanations](https://help.dreamhost.com/hc/en-us/articles/222784068-The-most-important-steps-to-take-to-make-an-nginx-server-more-secure)
+*  !! [nginx config generator](https://nginxconfig.io/?0.non_www=false&0.php=false&0.index=index.html&0.fallback_html)
 
 ## Notes
 * should separate ECR from app from pipeline
