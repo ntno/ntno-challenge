@@ -38,7 +38,7 @@
 * [use bootstrap script to make the cert](https://forums.docker.com/t/get-ssl-certificate-for-use-in-docker-container/42069/3)
 * [docker + self signed cert tutorial](https://www.johnmackenzie.co.uk/post/creating-self-signed-ssl-certificates-for-docker-and-nginx/)
 * !! [use docker secrets to store the certs](https://docs.docker.com/ee/ucp/interlock/usage/tls/)
-
+* !! [aws docs on getting certs to container](https://aws.amazon.com/blogs/compute/maintaining-transport-layer-security-all-the-way-to-your-container-part-2-using-aws-certificate-manager-private-certificate-authority/)
 ## Notes
 * should separate ECR from app from pipeline
 
