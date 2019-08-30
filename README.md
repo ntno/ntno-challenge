@@ -28,13 +28,19 @@
 ## Notes
 * should separate ECR from app from pipeline
 
+---
 
 
 
 `docker build hello-world -t hello-world`
-`docker run --name ntno-challenge -p 8080:80 -d hello-world:latest` #detatched mode
+
+
+`docker run --name ntno-challenge -p 8080:80 -d hello-world:latest` 
+
 `docker run --name ntno-challenge -p 8080:80 hello-world:latest` 
 
 `docker exec -it ntno-challenge bash`
+
 `docker stop ntno-challenge`
+
 `docker rm ntno-challenge`
