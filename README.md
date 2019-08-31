@@ -42,7 +42,7 @@
 * create pipeline project - does this combine the previous ?
 * review IAM privledges
 * update awscloudformationexample repo with new bucket policy
-
+* send build artifacts to s3 so that code pipeline can pick them up
 ---
 
 

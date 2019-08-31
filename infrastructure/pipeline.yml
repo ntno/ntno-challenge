@@ -146,6 +146,24 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
                   - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
+              - Sid: CloudformationPermissions
+                Action:
+                  - 'cloudformation:ValidateTemplate'
+                Effect: Allow
+                Resource: '*'
+              - Sid: CodeBuildPermissions
+                Action:
+                  - 'codebuild:BatchGetBuilds'
+                  - 'codebuild:StartBuild'
+                Effect: Allow
+                Resource: !GetAtt 
+                  - BuildProject
+                  - Arn
+              - Sid: EcrPermissions
+                Action:
+                  - 'ecr:DescribeImages'
+                Effect: Allow
+                Resource: '*'
   BuildProject:
     Type: AWS::CodeBuild::Project
     Properties: 
@@ -310,11 +328,6 @@ Resources:
 #       - 'cloudformation:ValidateTemplate'
 #     Resource: '*'
 #     Effect: Allow
-#   - Action:
-#       - 'codebuild:BatchGetBuilds'
-#       - 'codebuild:StartBuild'
-#     Resource: '*'
-#     Effect: Allow
 #   - Effect: Allow
 #     Action:
 #       - 'devicefarm:ListProjects'
@@ -332,13 +345,6 @@ Resources:
 #       - 'servicecatalog:DeleteProvisioningArtifact'
 #       - 'servicecatalog:UpdateProduct'
 #     Resource: '*'
-#   - Effect: Allow
-#     Action:
-#       - 'cloudformation:ValidateTemplate'
-#     Resource: '*'
-#   - Effect: Allow
-#     Action:
-#       - 'ecr:DescribeImages'
-#     Resource: '*'
+
 # Version: 2012-10-17
 
