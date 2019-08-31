@@ -38,22 +38,12 @@ Resources:
       RepositoryPolicyText: 
         Version: 2012-10-17
         Statement:
-          - Sid: DenyPushForAllUsers
-            Effect: Deny
+          - Sid: AllowStarForCodeBuildServiceRole
+            Effect: Allow
             Principal:
-              AWS:
-                - '*'
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:role/codebuild-${RepoName}-service-role'
             Action:
-              - 'ecr:PutImage'
-              - 'ecr:InitiateLayerUpload'
-              - 'ecr:UploadLayerPart'
-              - 'ecr:CompleteLayerUpload'
-          # - Sid: AllowStarForCodeBuild
-          #   Effect: Allow
-          #   Principal:
-          #     AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
-          #   Action:
-          #     - 'ecr:*'
+              - 'ecr:*'
       Tags: 
         - 
           Key: "domain"
@@ -86,16 +76,6 @@ Resources:
                 Resource: '*'
                   # - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RepoName}'
                   # - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RepoName}:*'
-              # - Sid: WriteToCodePipelineBucketPermission
-              #   Effect: Allow
-              #   Resource:
-              #     - !Sub 'arn:aws:s3:::codepipeline-${AWS::Region}-*'
-              #   Action:
-              #     - 's3:PutObject'
-              #     - 's3:GetObject'
-              #     - 's3:GetObjectVersion'
-              #     - 's3:GetBucketAcl'
-              #     - 's3:GetBucketLocation'
               - Sid: PullFromCodeCommitRepoPermission
                 Effect: Allow
                 Resource:
