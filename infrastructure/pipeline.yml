@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: creates code commit repository and sns trigger topic 
+Parameters:
+  RepoName:
+    Type: String
+    Description: repository name
+  RepoDescription:
+    Type: String
+    Description: repository description
+Resources:
+  TriggerSNS:
+    Type: AWS::SNS::Topic
+    Properties: 
+      DisplayName: !Sub "${RepoName}-SNS"
+      # KmsMasterKeyId: String
+      # Subscription: 
+      #   - Subscription
+      # TopicName: String
+  Repo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: !Ref RepoName
+      RepositoryDescription: !Ref RepoDescription
+      Triggers:
+      - Name: MasterTrigger
+        DestinationArn:
+          Ref: TriggerSNS
+        Branches:
+        - master            #empty array to trigger on all branches
+        Events:
+        - all
