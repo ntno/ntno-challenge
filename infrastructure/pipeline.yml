@@ -7,6 +7,9 @@ Parameters:
   RepoDescription:
     Type: String
     Description: repository description
+  ArtifactBucketName:
+    Type: String
+    Description: name of bucket for storing build artifacts
 Resources:
   TriggerSNS:
     Type: AWS::SNS::Topic
@@ -121,23 +124,28 @@ Resources:
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
-              - Sid: ReadFromCodeCommitPermission
+              - Sid: CodeCommitPermissions
                 Action:
                   - 'codecommit:GetBranch'
                   - 'codecommit:GetCommit'
                   - 'codecommit:GetUploadArchiveStatus'
-                Effect: Allow
-                Resource: !GetAtt
-                  - CodeRepo
-                  - Arn
-              - Sid: WriteToCodeCommitArchivePermission
-                Action:
                   - 'codecommit:UploadArchive'
                   - 'codecommit:CancelUploadArchive'
                 Effect: Allow
                 Resource: !GetAtt
                   - CodeRepo
                   - Arn
+              - Sid: ArtifactBucketPermissions
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetObject'
+                  - 's3:GetObjectVersion'
+                  - 's3:GetBucketAcl'
+                  - 's3:GetBucketLocation'
+                Effect: Allow
+                Resource:
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
   BuildProject:
     Type: AWS::CodeBuild::Project
     Properties: 

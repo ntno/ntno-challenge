@@ -28,13 +28,20 @@
 
 
 * [docker buildspec.yml](https://docs.aws.amazon.com/codebuild/latest/userguide/sample-docker.html)
+* [buildspec reference](https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html)
 * [code pipeline resource types](https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awscodepipeline.html)
 * [code deploy resource types](https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awscodedeploy.html)
 * [code commit resource types](https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awscodecommit.html)
 * [ecr example policies](https://docs.aws.amazon.com/AmazonECR/latest/userguide/RepositoryPolicyExamples.html)
 * [curated environments for codebuild](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)
-## Notes
-* should separate ECR from app from pipeline
+* [test stage](https://docs.aws.amazon.com/codebuild/latest/userguide/how-to-create-pipeline.html#how-to-create-pipeline-add-test)
+
+### TODOs
+* add test stage to the build project
+* create deploy project?
+* create pipeline project - does this combine the previous ?
+* review IAM privledges
+* update awscloudformationexample repo with new bucket policy
 
 ---
 
