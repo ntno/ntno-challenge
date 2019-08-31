@@ -182,7 +182,23 @@ Resources:
       Environment: 
         # Certificate: String
         ComputeType: BUILD_GENERAL1_SMALL
-#         EnvironmentVariables: 
+        EnvironmentVariables: 
+          - 
+            Name: AWS_DEFAULT_REGION
+            Type: PLAINTEXT
+            Value: !Sub '${AWS::Region}'
+          - 
+            Name: AWS_ACCOUNT_ID
+            Type: PLAINTEXT
+            Value: !Sub '${AWS::AccountId}'
+          - 
+            Name: IMAGE_TAG
+            Type: PLAINTEXT
+            Value: latest
+          - 
+            Name: IMAGE_REPO_NAME
+            Type: PLAINTEXT
+            Value: !Ref RepoName
         Image: aws/codebuild/amazonlinux2-x86_64-standard:1.0	
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: True
