@@ -16,7 +16,7 @@ Resources:
       # Subscription: 
       #   - Subscription
       # TopicName: String
-  Repo:
+  CodeRepo:
     Type: AWS::CodeCommit::Repository
     Properties:
       RepositoryName: !Ref RepoName
@@ -29,3 +29,29 @@ Resources:
         - master            #empty array to trigger on all branches
         Events:
         - all
+  ImageRepo:
+    Type: AWS::ECR::Repository
+    Properties: 
+      # LifecyclePolicy: 
+      #   LifecyclePolicy
+      RepositoryName: !Ref RepoName
+      RepositoryPolicyText: 
+        Version: 2012-10-17
+        Statement:
+          - Sid: DenyPushForAllUsers
+            Effect: Deny
+            Principal:
+              AWS:
+                - '*'
+            Action:
+              - 'ecr:PutImage'
+              - 'ecr:InitiateLayerUpload'
+              - 'ecr:UploadLayerPart'
+              - 'ecr:CompleteLayerUpload'
+      Tags: 
+        - 
+          Key: "domain"
+          Value: "personal"
+        - 
+          Key: "project"
+          Value: "ntno-challenge"
