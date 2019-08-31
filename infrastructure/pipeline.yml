@@ -48,6 +48,12 @@ Resources:
               - 'ecr:InitiateLayerUpload'
               - 'ecr:UploadLayerPart'
               - 'ecr:CompleteLayerUpload'
+          # - Sid: AllowStarForCodeBuild
+          #   Effect: Allow
+          #   Principal:
+          #     AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+          #   Action:
+          #     - 'ecr:*'
       Tags: 
         - 
           Key: "domain"
@@ -73,13 +79,13 @@ Resources:
             Statement:
               - Sid: CreateLogsPermission
                 Effect: Allow
-                Resource:
-                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RepoName}'
-                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RepoName}:*'
                 Action:
                   - 'logs:CreateLogGroup'
                   - 'logs:CreateLogStream'
                   - 'logs:PutLogEvents'
+                Resource: '*'
+                  # - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RepoName}'
+                  # - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RepoName}:*'
               # - Sid: WriteToCodePipelineBucketPermission
               #   Effect: Allow
               #   Resource:
@@ -96,14 +102,12 @@ Resources:
                   - !Sub 'arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${RepoName}'
                 Action:
                   - 'codecommit:GitPull'
-              - Sid: ReadWriteToEcrRepo
+              - Sid: ReadWriteToEcrRepoPermissions
                 Effect: Allow
                 Action:
-                  - 'ecr:GetAuthorizationToken'
                   - 'ecr:BatchCheckLayerAvailability'
                   - 'ecr:GetDownloadUrlForLayer'
                   - 'ecr:GetRepositoryPolicy'
-                  - 'ecr:DescribeRepositories'
                   - 'ecr:ListImages'
                   - 'ecr:DescribeImages'
                   - 'ecr:BatchGetImage'
@@ -115,4 +119,222 @@ Resources:
                   - !GetAtt 
                     - ImageRepo
                     - Arn
-                  
+              - Sid: EcrLoginPermission
+                Effect: Allow
+                Action:
+                  - 'ecr:DescribeRepositories'
+                  - 'ecr:GetAuthorizationToken'
+                Resource: '*'
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: 'sts:AssumeRole'
+      RoleName: !Sub 'codepipeline-${RepoName}-service-role'
+      Policies: 
+        - PolicyName: 'CodePipelinePermissions'
+          PolicyDocument: 
+            Version: 2012-10-17
+            Statement:
+              - Sid: ReadFromCodeCommitPermission
+                Action:
+                  - 'codecommit:GetBranch'
+                  - 'codecommit:GetCommit'
+                  - 'codecommit:GetUploadArchiveStatus'
+                Effect: Allow
+                Resource: !GetAtt
+                  - CodeRepo
+                  - Arn
+              - Sid: WriteToCodeCommitArchivePermission
+                Action:
+                  - 'codecommit:UploadArchive'
+                  - 'codecommit:CancelUploadArchive'
+                Effect: Allow
+                Resource: !GetAtt
+                  - CodeRepo
+                  - Arn
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties: 
+      Artifacts: 
+        # ArtifactIdentifier: String
+        # EncryptionDisabled: Boolean
+        # Location: String
+        # Name: String
+        # NamespaceType: String
+        # OverrideArtifactName: Boolean
+        # Packaging: String
+        # Path: String
+        Type: NO_ARTIFACTS
+      BadgeEnabled: False
+      Cache: 
+        Location: LOCAL
+        Modes: 
+          - LOCAL_DOCKER_LAYER_CACHE
+        Type: LOCAL
+      Description: !Sub 'CodeBuild project for ${RepoName}'
+      # EncryptionKey: String
+      Environment: 
+        # Certificate: String
+        ComputeType: BUILD_GENERAL1_SMALL
+#         EnvironmentVariables: 
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:1.0	
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: True
+        # RegistryCredential: 
+        #   RegistryCredential
+        Type: LINUX_CONTAINER
+      LogsConfig: 
+        CloudWatchLogs: 
+            # GroupName: String
+            Status: ENABLED
+            # StreamName: String
+        # S3Logs: 
+        #   S3LogsConfig
+      Name: !Ref RepoName
+      QueuedTimeoutInMinutes: 5
+      # SecondaryArtifacts: 
+      #   - Artifacts
+      # SecondarySources: 
+      #   - Source
+      # SecondarySourceVersions: 
+      #   - ProjectSourceVersion
+      ServiceRole: !Ref CodeBuildServiceRole
+      Source: 
+        # Auth: 
+        #   SourceAuth
+        #   BuildSpec: String
+        #   GitCloneDepth: Integer
+        #   GitSubmodulesConfig: 
+        #     GitSubmodulesConfig
+        #   InsecureSsl: Boolean
+        #   Location: String
+        #   ReportBuildStatus: Boolean
+        #   SourceIdentifier: String
+        #   Type: String
+        # BuildSpec: String
+        # GitCloneDepth: Integer
+        # GitSubmodulesConfig: 
+        #   GitSubmodulesConfig
+        # InsecureSsl: Boolean
+        Location: !Sub 'https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${RepoName}'
+        # ReportBuildStatus: Boolean
+        # SourceIdentifier: String
+        Type: CODECOMMIT
+      # SourceVersion: String
+      Tags: 
+        - 
+          Key: "domain"
+          Value: "personal"
+        - 
+          Key: "project"
+          Value: "ntno-challenge"
+      TimeoutInMinutes: 10
+      # Triggers: 
+      #   ProjectTriggers
+      # VpcConfig: 
+      #   VpcConfig
+
+
+# - Sid: AllowRolePassToOtherServices -----not sure i get this yet so commenting out
+#   Action:
+#     - 'iam:PassRole'
+#   Effect: Allow
+#   Condition:
+#     StringEqualsIfExists:
+#       'iam:PassedToService':
+#         - cloudformation.amazonaws.com
+#         - elasticbeanstalk.amazonaws.com
+#         - ec2.amazonaws.com
+#         - ecs-tasks.amazonaws.com
+#   Resource: '*'                               
+
+#   - Action:
+#       - 'codedeploy:CreateDeployment'
+#       - 'codedeploy:GetApplication'
+#       - 'codedeploy:GetApplicationRevision'
+#       - 'codedeploy:GetDeployment'
+#       - 'codedeploy:GetDeploymentConfig'
+#       - 'codedeploy:RegisterApplicationRevision'
+#     Resource: '*'
+#     Effect: Allow
+#   - Action:
+#       - 'elasticbeanstalk:*'
+#       - 'ec2:*'
+#       - 'elasticloadbalancing:*'
+#       - 'autoscaling:*'
+#       - 'cloudwatch:*'
+#       - 's3:*'
+#       - 'sns:*'
+#       - 'cloudformation:*'
+#       - 'rds:*'
+#       - 'sqs:*'
+#       - 'ecs:*'
+#     Resource: '*'
+#     Effect: Allow
+#   - Action:
+#       - 'lambda:InvokeFunction'
+#       - 'lambda:ListFunctions'
+#     Resource: '*'
+#     Effect: Allow
+#   - Action:
+#       - 'opsworks:CreateDeployment'
+#       - 'opsworks:DescribeApps'
+#       - 'opsworks:DescribeCommands'
+#       - 'opsworks:DescribeDeployments'
+#       - 'opsworks:DescribeInstances'
+#       - 'opsworks:DescribeStacks'
+#       - 'opsworks:UpdateApp'
+#       - 'opsworks:UpdateStack'
+#     Resource: '*'
+#     Effect: Allow
+#   - Action:
+#       - 'cloudformation:CreateStack'
+#       - 'cloudformation:DeleteStack'
+#       - 'cloudformation:DescribeStacks'
+#       - 'cloudformation:UpdateStack'
+#       - 'cloudformation:CreateChangeSet'
+#       - 'cloudformation:DeleteChangeSet'
+#       - 'cloudformation:DescribeChangeSet'
+#       - 'cloudformation:ExecuteChangeSet'
+#       - 'cloudformation:SetStackPolicy'
+#       - 'cloudformation:ValidateTemplate'
+#     Resource: '*'
+#     Effect: Allow
+#   - Action:
+#       - 'codebuild:BatchGetBuilds'
+#       - 'codebuild:StartBuild'
+#     Resource: '*'
+#     Effect: Allow
+#   - Effect: Allow
+#     Action:
+#       - 'devicefarm:ListProjects'
+#       - 'devicefarm:ListDevicePools'
+#       - 'devicefarm:GetRun'
+#       - 'devicefarm:GetUpload'
+#       - 'devicefarm:CreateUpload'
+#       - 'devicefarm:ScheduleRun'
+#     Resource: '*'
+#   - Effect: Allow
+#     Action:
+#       - 'servicecatalog:ListProvisioningArtifacts'
+#       - 'servicecatalog:CreateProvisioningArtifact'
+#       - 'servicecatalog:DescribeProvisioningArtifact'
+#       - 'servicecatalog:DeleteProvisioningArtifact'
+#       - 'servicecatalog:UpdateProduct'
+#     Resource: '*'
+#   - Effect: Allow
+#     Action:
+#       - 'cloudformation:ValidateTemplate'
+#     Resource: '*'
+#   - Effect: Allow
+#     Action:
+#       - 'ecr:DescribeImages'
+#     Resource: '*'
+# Version: 2012-10-17
+
