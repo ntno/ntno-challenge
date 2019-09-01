@@ -6,6 +6,7 @@ TemplateName=artifact-bucket.yml
 
 aws cloudformation create-stack --template-body file://${TemplateName} \
                                 --stack-name ${StackName}  \
-                                --parameters  ParameterKey=CustomBucketName,ParameterValue=${BucketName} 
+                                --parameters  ParameterKey=CustomBucketName,ParameterValue=${BucketName} \
+                                              ParameterKey=DomainTag,ParameterValue=personal 
 
 export NTNO_CHALLENGE_ARTIFACT_BUCKET_NAME=$BucketName
