@@ -168,15 +168,8 @@ Resources:
     Type: AWS::CodeBuild::Project
     Properties: 
       Artifacts: 
-        # ArtifactIdentifier: String
-        # EncryptionDisabled: Boolean
-        # Location: String
-        # Name: String
-        # NamespaceType: String
-        # OverrideArtifactName: Boolean
-        # Packaging: String
-        # Path: String
-        Type: NO_ARTIFACTS
+        EncryptionDisabled: False
+        Type: CODEPIPELINE
       BadgeEnabled: False
       Cache: 
         Location: LOCAL
@@ -184,7 +177,6 @@ Resources:
           - LOCAL_DOCKER_LAYER_CACHE
         Type: LOCAL
       Description: !Sub 'CodeBuild project for ${RepoName}'
-      # EncryptionKey: String
       Environment: 
         # Certificate: String
         ComputeType: BUILD_GENERAL1_SMALL
@@ -228,27 +220,10 @@ Resources:
       #   - ProjectSourceVersion
       ServiceRole: !Ref CodeBuildServiceRole
       Source: 
-        # Auth: 
-        #   SourceAuth
-        #   BuildSpec: String
-        #   GitCloneDepth: Integer
-        #   GitSubmodulesConfig: 
-        #     GitSubmodulesConfig
-        #   InsecureSsl: Boolean
-        #   Location: String
-        #   ReportBuildStatus: Boolean
-        #   SourceIdentifier: String
-        #   Type: String
-        # BuildSpec: String
-        # GitCloneDepth: Integer
-        # GitSubmodulesConfig: 
-        #   GitSubmodulesConfig
-        # InsecureSsl: Boolean
+        BuildSpec: buildspec.yml
+        GitCloneDepth: 0
         Location: !Sub 'https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${RepoName}'
-        # ReportBuildStatus: Boolean
-        # SourceIdentifier: String
-        Type: CODECOMMIT
-      # SourceVersion: String
+        Type: CODEPIPELINE
       Tags: 
         - 
           Key: "domain"
