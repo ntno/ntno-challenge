@@ -10,6 +10,12 @@ Parameters:
   ArtifactBucketName:
     Type: String
     Description: name of bucket for storing build artifacts
+  DomainTag:
+    Type: String
+    Description: resource tag for organization
+  ProjectTag:
+    Type: String
+    Description: resource tag for organization
 Resources:
   TriggerSNS:
     Type: AWS::SNS::Topic
@@ -19,6 +25,7 @@ Resources:
       # Subscription: 
       #   - Subscription
       # TopicName: String
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
   CodeRepo:
     Type: AWS::CodeCommit::Repository
     Properties:
@@ -32,28 +39,12 @@ Resources:
         - master            #empty array to trigger on all branches
         Events:
         - all
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
   ImageRepo:
     Type: AWS::ECR::Repository
     Properties: 
-      # LifecyclePolicy: 
-      #   LifecyclePolicy
       RepositoryName: !Ref RepoName
-      RepositoryPolicyText: 
-        Version: 2012-10-17
-        Statement:
-          - Sid: AllowStarForCodeBuildServiceRole
-            Effect: Allow
-            Principal:
-              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:role/codebuild-${RepoName}-service-role'
-            Action:
-              - 'ecr:*'
-      Tags: 
-        - 
-          Key: "domain"
-          Value: "personal"
-        - 
-          Key: "project"
-          Value: "ntno-challenge"
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -65,6 +56,7 @@ Resources:
               Service: codebuild.amazonaws.com
             Action: 'sts:AssumeRole'
       RoleName: !Sub 'codebuild-${RepoName}-service-role'
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
       Policies: 
         - PolicyName: 'CodeBuildPermissions'
           PolicyDocument: 
@@ -129,6 +121,7 @@ Resources:
               Service: codepipeline.amazonaws.com
             Action: 'sts:AssumeRole'
       RoleName: !Sub 'codepipeline-${RepoName}-service-role'
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
       Policies: 
         - PolicyName: 'CodePipelinePermissions'
           PolicyDocument: 
@@ -226,13 +219,7 @@ Resources:
         GitCloneDepth: 0
         Location: !Sub 'https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${RepoName}'
         Type: CODEPIPELINE
-      Tags: 
-        - 
-          Key: "domain"
-          Value: "personal"
-        - 
-          Key: "project"
-          Value: "ntno-challenge"
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
       TimeoutInMinutes: 10
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -278,9 +265,6 @@ Resources:
                 - Name: BuildArtifact
               Region: !Sub '${AWS::Region}'
               RunOrder: 1
-
-
-
 
 
 

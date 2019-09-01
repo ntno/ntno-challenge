@@ -13,4 +13,6 @@ aws cloudformation update-stack --template-url https://ntno-misc.s3.amazonaws.co
                     --stack-name $stackName \
                     --parameters  ParameterKey=RepoName,ParameterValue=$repoName \
                                   ParameterKey=RepoDescription,ParameterValue="$repoDescription" \
-                                  ParameterKey=ArtifactBucketName,ParameterValue=$artifactBucketName
+                                  ParameterKey=ArtifactBucketName,ParameterValue=$artifactBucketName \
+                                  ParameterKey=DomainTag,ParameterValue=personal \
+                                  ParameterKey=ProjectTag,ParameterValue=ntno-challenge \

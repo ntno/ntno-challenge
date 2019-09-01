@@ -37,12 +37,13 @@
 * [test stage](https://docs.aws.amazon.com/codebuild/latest/userguide/how-to-create-pipeline.html#how-to-create-pipeline-add-test)
 * [artifact troubleshooting](https://stelligent.com/2018/09/06/troubleshooting-aws-codepipeline-artifacts/)
 ### TODOs
-* add test stage to the build project
-* create deploy project?
-* create pipeline project - does this combine the previous ?
+* add test stage to pipeline
+* create deploy project
 * review IAM privledges
 * update awscloudformationexample repo with new bucket policy
 * send build artifacts to s3 so that code pipeline can pick them up
+* consider movning code commit repo away from pipeline because if that gets deleted then so does the code history
+* investigate how branch builds would work
 ---
 
 
