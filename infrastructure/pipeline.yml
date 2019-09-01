@@ -70,6 +70,16 @@ Resources:
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
+              - Sid: ReadFromArtifactBucket
+                Action:
+                  - 's3:GetObject'
+                  - 's3:GetObjectVersion'
+                  - 's3:GetBucketAcl'
+                  - 's3:GetBucketLocation'
+                Effect: Allow
+                Resource:
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
               - Sid: CreateLogsPermission
                 Effect: Allow
                 Action:
@@ -252,24 +262,48 @@ Resources:
       RoleArn: !GetAtt
         - CodePipelineServiceRole
         - Arn
-      # Stages: 
-      #   - 
-      #      Actions: 
-      #         - 
-      #           ActionTypeId: 
-      #             ActionTypeId
-      #           Configuration: Json
-      #           InputArtifacts: 
-      #             - InputArtifact
-      #           Name: String
-      #           OutputArtifacts: 
-      #             - OutputArtifact
-      #           Region: String
-      #           RoleArn: String
-      #           RunOrder: Integer
-      #       Blockers: 
-      #         - BlockerDeclaration
-      #       Name: Build
+      Stages: 
+        -  Name: FetchSource
+           Actions: 
+              - Name: Source
+                ActionTypeId: 
+                  Category: Source
+                  Owner: AWS
+                  Provider: CodeCommit
+                  Version: 'v0'
+                Configuration: 
+                  RepositoryName: !Ref RepoName
+                  BranchName: master
+                  PollForSourceChanges: True
+                OutputArtifacts: 
+                  - Name: SourceArtifact
+                Region: !Sub '${AWS::Region}'
+                # RoleArn: !GetAtt
+                #   - CodeBuildServiceRole
+                #   - Arn
+                RunOrder: 1
+        - Name: BuildSource
+          Actions:
+            - Name: Build
+              ActionTypeId: 
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: 'v0'
+              Configuration: 
+                ProjectName: !Ref RepoName
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts: 
+                - Name: BuildArtifact
+              Region: !Sub '${AWS::Region}'
+              # RoleArn: String
+              RunOrder: 1
+
+
+
+
+
 
 # - Sid: AllowRolePassToOtherServices -----not sure i get this yet so commenting out
 #   Action:
