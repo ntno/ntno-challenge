@@ -190,11 +190,6 @@ Resources:
         EncryptionDisabled: False
         Type: CODEPIPELINE
       BadgeEnabled: False
-      Cache: 
-        Location: LOCAL
-        Modes: 
-          - LOCAL_DOCKER_LAYER_CACHE
-        Type: LOCAL
       Description: !Sub 'CodeBuild project for ${RepoName}'
       Environment: 
         # Certificate: String
@@ -219,24 +214,12 @@ Resources:
         Image: aws/codebuild/amazonlinux2-x86_64-standard:1.0	
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: True
-        # RegistryCredential: 
-        #   RegistryCredential
         Type: LINUX_CONTAINER
       LogsConfig: 
         CloudWatchLogs: 
-            # GroupName: String
             Status: ENABLED
-            # StreamName: String
-        # S3Logs: 
-        #   S3LogsConfig
       Name: !Ref RepoName
       QueuedTimeoutInMinutes: 5
-      # SecondaryArtifacts: 
-      #   - Artifacts
-      # SecondarySources: 
-      #   - Source
-      # SecondarySourceVersions: 
-      #   - ProjectSourceVersion
       ServiceRole: !Ref CodeBuildServiceRole
       Source: 
         BuildSpec: buildspec.yml
@@ -251,10 +234,6 @@ Resources:
           Key: "project"
           Value: "ntno-challenge"
       TimeoutInMinutes: 10
-      # Triggers: 
-      #   ProjectTriggers
-      # VpcConfig: 
-      #   VpcConfig
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties: 
