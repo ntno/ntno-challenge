@@ -134,15 +134,15 @@ Resources:
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
-              - Sid: AllowRolePassToCloudFormation
-                Action:
-                  - 'iam:PassRole'
-                Effect: Allow
-                Condition:
-                  StringEqualsIfExists:
-                    'iam:PassedToService':
-                      - cloudformation.amazonaws.com
-                Resource: '*'
+              # - Sid: AllowRolePassToCloudFormation
+              #   Action:
+              #     - 'iam:PassRole'
+              #   Effect: Allow
+              #   Condition:
+              #     StringEqualsIfExists:
+              #       'iam:PassedToService':
+              #         - cloudformation.amazonaws.com
+              #   Resource: '*'
               - Sid: CodeCommitPermissions
                 Action:
                   - 'codecommit:GetBranch'
@@ -283,7 +283,7 @@ Resources:
                 Configuration: 
                   RepositoryName: !Ref RepoName
                   BranchName: master
-                  PollForSourceChanges: False
+                  PollForSourceChanges: True
                 OutputArtifacts: 
                   - Name: SourceArtifact
                 Region: !Sub '${AWS::Region}'
@@ -298,7 +298,7 @@ Resources:
                   Category: Build
                   Owner: AWS
                   Provider: CodeBuild
-                  Version: 'v0'
+                  Version: '1'
               Configuration: 
                 ProjectName: !Ref RepoName
               InputArtifacts:
