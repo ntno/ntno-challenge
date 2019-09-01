@@ -259,13 +259,8 @@ Resources:
     Type: AWS::CodePipeline::Pipeline
     Properties: 
       ArtifactStore: 
-        EncryptionKey: 
-          Id: 'aws/s3'
-          Type: 'KMS'
         Location: !Ref ArtifactBucketName
         Type: S3
-      # DisableInboundStageTransitions: 
-      #   - StageTransition
       Name: !Ref RepoName
       RestartExecutionOnUpdate: True
       RoleArn: !GetAtt
@@ -287,9 +282,6 @@ Resources:
                 OutputArtifacts: 
                   - Name: SourceArtifact
                 Region: !Sub '${AWS::Region}'
-                # RoleArn: !GetAtt
-                #   - CodeBuildServiceRole
-                #   - Arn
                 RunOrder: 1
         - Name: BuildSource
           Actions:
@@ -306,7 +298,6 @@ Resources:
               OutputArtifacts: 
                 - Name: BuildArtifact
               Region: !Sub '${AWS::Region}'
-              # RoleArn: String
               RunOrder: 1
 
 

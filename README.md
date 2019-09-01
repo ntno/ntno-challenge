@@ -56,6 +56,4 @@
 
 `docker exec -it ntno-challenge bash`
 
-`docker stop ntno-challenge`
-
-`docker rm ntno-challenge`
+`docker stop ntno-challenge && docker rm ntno-challenge`
