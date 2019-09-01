@@ -25,9 +25,25 @@
 * [nginx config](http://nginx.org/en/docs/beginners_guide.html)
 * [secure nginx](https://www.cyberciti.biz/tips/linux-unix-bsd-nginx-webserver-security.html)
 
-## Notes
-* should separate ECR from app from pipeline
 
+
+* [docker buildspec.yml](https://docs.aws.amazon.com/codebuild/latest/userguide/sample-docker.html)
+* [buildspec reference](https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html)
+* [code pipeline resource types](https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awscodepipeline.html)
+* [code deploy resource types](https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awscodedeploy.html)
+* [code commit resource types](https://docs.aws.amazon.com/IAM/latest/UserGuide/list_awscodecommit.html)
+* [ecr example policies](https://docs.aws.amazon.com/AmazonECR/latest/userguide/RepositoryPolicyExamples.html)
+* [curated environments for codebuild](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)
+* [test stage](https://docs.aws.amazon.com/codebuild/latest/userguide/how-to-create-pipeline.html#how-to-create-pipeline-add-test)
+* [artifact troubleshooting](https://stelligent.com/2018/09/06/troubleshooting-aws-codepipeline-artifacts/)
+### TODOs
+* add test stage to pipeline
+* create deploy project
+* review IAM privledges
+* update awscloudformationexample repo with new bucket policy
+* send build artifacts to s3 so that code pipeline can pick them up
+* consider movning code commit repo away from pipeline because if that gets deleted then so does the code history
+* investigate how branch builds would work
 ---
 
 
@@ -41,6 +57,4 @@
 
 `docker exec -it ntno-challenge bash`
 
-`docker stop ntno-challenge`
-
-`docker rm ntno-challenge`
+`docker stop ntno-challenge && docker rm ntno-challenge`
