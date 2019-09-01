@@ -236,7 +236,40 @@ Resources:
       #   ProjectTriggers
       # VpcConfig: 
       #   VpcConfig
-
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties: 
+      ArtifactStore: 
+        EncryptionKey: 
+          Id: 'aws/s3'
+          Type: 'KMS'
+        Location: !Ref ArtifactBucketName
+        Type: S3
+      # DisableInboundStageTransitions: 
+      #   - StageTransition
+      Name: !Ref RepoName
+      RestartExecutionOnUpdate: True
+      RoleArn: !GetAtt
+        - CodePipelineServiceRole
+        - Arn
+      # Stages: 
+      #   - 
+      #      Actions: 
+      #         - 
+      #           ActionTypeId: 
+      #             ActionTypeId
+      #           Configuration: Json
+      #           InputArtifacts: 
+      #             - InputArtifact
+      #           Name: String
+      #           OutputArtifacts: 
+      #             - OutputArtifact
+      #           Region: String
+      #           RoleArn: String
+      #           RunOrder: Integer
+      #       Blockers: 
+      #         - BlockerDeclaration
+      #       Name: Build
 
 # - Sid: AllowRolePassToOtherServices -----not sure i get this yet so commenting out
 #   Action:
