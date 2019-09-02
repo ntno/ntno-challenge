@@ -1,10 +1,23 @@
 
 import fileinput, re, logging
-from bracelogs import BraceMessage as __
 
+########## LOG SETUP ####################################################
+#https://docs.python.org/3/howto/logging-cookbook.html
+class BraceMessage:
+    def __init__(self, fmt, *args, **kwargs):
+        self.fmt = fmt
+        self.args = args
+        self.kwargs = kwargs
+
+    def __str__(self):
+        return self.fmt.format(*self.args, **self.kwargs)
+
+__ = BraceMessage
 logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s',)
 LOGGER = logging.getLogger(__name__)
 # LOGGER.setLevel(logging.DEBUG)
+###########################################################################
+
 
 matchCardFormat = re.compile(r"^[456][0-9]{3}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}$")
 matchDuplicateCharacters = re.compile(r"(.)\1{3,}")

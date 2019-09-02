@@ -8,8 +8,10 @@ def stripNewlines(string):
     return string.replace('\n', '')
 
 def executeMainAndCaptureOutput(dummyStdinFileName):
+    #https://stackoverflow.com/questions/6271947/how-can-i-simulate-input-to-stdin-for-pyunit
     sys.stdin = open(dummyStdinFileName,'r')
 
+    #https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
     f = io.StringIO()
     with redirect_stdout(f):
         validate.main()
