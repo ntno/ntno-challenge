@@ -1,13 +1,13 @@
 
 import fileinput, re
-DEBUG = True
+DEBUG = False
 
 
 ##############
 # define regex
 ##############
 matchCardFormat = re.compile(r"^[456][0-9]{3}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}$")
-matchDuplicateCharacters = re.compile(r"(.)\1")
+matchDuplicateCharacters = re.compile(r"(.)\1{3,}")
 
 ###############
 # read in lines
@@ -26,20 +26,15 @@ for l in lines:
     message = ""
     matchOnCardFormat = re.fullmatch(matchCardFormat, l)
     if(matchOnCardFormat):
-        matchOnDuplicates = re.findall(matchDuplicateCharacters, l)
+        matchOnDuplicates = re.findall(matchDuplicateCharacters, l.replace("-", ""))
         if(matchOnDuplicates):
-            if(len(matchOnDuplicates) > 1):
-                 message = "Invalid"
-                 if(DEBUG):
-                     message = "({}) - {} - {}".format(l, message,  "more than one duplicate character")
-            else:
-                 message = "Valid" 
-                 if(DEBUG):
-                    message = "({}) - {} - {}".format(l, message,  "only one duplicate character")
+            message = "Invalid"
+            if(DEBUG):
+                message = "({}) - {} - {}".format(l, message,  "at least one occurence of 4 consecutive repeated characters")
         else:
              message = "Valid" 
              if(DEBUG):
-                message = "({}) - {} - {}".format(l, message,  "no duplicate characters")
+                message = "({}) - {} - {}".format(l, message,  "no 4 consecutive repeated characters")
     else:
         message = "Invalid" 
         if(DEBUG):
