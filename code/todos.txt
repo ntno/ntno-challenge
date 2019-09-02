@@ -1,0 +1,2 @@
+* duplicate - invalid if //consecutive// 
+  * so 33-33 is invalid, 3333 is invalid, 339333 is fine (i think)
