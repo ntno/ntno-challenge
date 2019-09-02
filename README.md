@@ -36,6 +36,11 @@
 * [curated environments for codebuild](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)
 * [test stage](https://docs.aws.amazon.com/codebuild/latest/userguide/how-to-create-pipeline.html#how-to-create-pipeline-add-test)
 * [artifact troubleshooting](https://stelligent.com/2018/09/06/troubleshooting-aws-codepipeline-artifacts/)
+
+* [docker aws tutorial](https://www.ybrikman.com/writing/2015/11/11/running-docker-aws-ground-up/)
+* [how to install ecs software on ec2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-install.html)
+
+
 ### TODOs
 * add test stage to pipeline
 * create deploy project
