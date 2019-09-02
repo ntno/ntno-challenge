@@ -30,13 +30,13 @@ for l in lines:
         if(matchOnDuplicates):
             message = "Invalid"
             if(DEBUG):
-                message = "({}) - {} - {}".format(l, message,  "at least one occurence of 4 consecutive repeated characters")
+                message = "{},{},{}".format(l, message,  "at least one occurence of 4 consecutive repeated characters")
         else:
              message = "Valid" 
              if(DEBUG):
-                message = "({}) - {} - {}".format(l, message,  "no 4 consecutive repeated characters")
+                message = "{},{},{}".format(l, message,  "no 4 consecutive repeated characters")
     else:
         message = "Invalid" 
         if(DEBUG):
-            message = "({}) - {} - {}".format(l, message,  "bad card format")
+            message = "{},{},{}".format(l, message,  "bad card format")
     print (message)
