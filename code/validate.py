@@ -32,17 +32,17 @@ for l in lines:
             if(len(matchOnDuplicates) > 1):
                  message = "Invalid"
                  if(DEBUG):
-                     message = message + " - more than one duplicate character"
+                     message = "({}) - {} - {}".format(l, message,  "more than one duplicate character")
             else:
                  message = "Valid" 
                  if(DEBUG):
-                     message = message + " - only one duplicate character" 
+                    message = "({}) - {} - {}".format(l, message,  "only one duplicate character")
         else:
              message = "Valid" 
              if(DEBUG):
-                 message = message + " - no duplicate characters"
+                message = "({}) - {} - {}".format(l, message,  "no duplicate characters")
     else:
         message = "Invalid" 
         if(DEBUG):
-            message = message + " - bad card format"
+            message = "({}) - {} - {}".format(l, message,  "bad card format")
     print (message)
