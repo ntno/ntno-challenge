@@ -1,6 +1,10 @@
 
-import fileinput, re
-DEBUG = False
+import fileinput, re, logging
+from bracelogs import BraceMessage as __
+
+logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s',)
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 matchCardFormat = re.compile(r"^[456][0-9]{3}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}$")
 matchDuplicateCharacters = re.compile(r"(.)\1{3,}")
@@ -15,23 +19,21 @@ def readLinesFromStdin():
     return lines
 
 def validateLine(line):
-    message = ""
+    isValid = False
+    debugMessage = ""
     matchOnCardFormat = re.fullmatch(matchCardFormat, line)
     if(matchOnCardFormat):
         matchOnDuplicates = re.findall(matchDuplicateCharacters, line.replace("-", ""))
         if(matchOnDuplicates):
-            message = "Invalid"
-            if(DEBUG):
-                message = "{},{},{}".format(line, message,  "at least one occurence of 4 consecutive repeated characters")
+            isValid = False
+            debugMessage = "at least one occurence of 4 consecutive repeated characters"
         else:
-            message = "Valid" 
-            if(DEBUG):
-                message = "{},{},{}".format(line, message,  "no 4 consecutive repeated characters")
+            isValid = True
+            debugMessage = "no 4 consecutive repeated characters"
     else:
-        message = "Invalid" 
-        if(DEBUG):
-            message = "{},{},{}".format(line, message,  "bad card format")
-    return message
+        isValid = False
+        debugMessage = "bad card format"
+    return (line, isValid, debugMessage)
 
 def validateLines(lines):
     answers = []
@@ -43,5 +45,9 @@ def validateLines(lines):
 if __name__ == "__main__":
     lines = readLinesFromStdin()
     answers = validateLines(lines)
-    for answ in answers:
-        print (answ)
+    for answer in answers:
+        LOGGER.debug(__("{line},{details}", line=answer[0], details=answer[2]))
+        if(answer[1]):
+            print ("Valid")
+        else: 
+            print ("Invalid")
