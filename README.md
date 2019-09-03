@@ -19,8 +19,8 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 * integration with codebuild 
   * changes to web app are automatically built
   * docker image is stored in elastic container registry 
-* creation of source->build pipeline done via [cloudformation template](https://github.com/ntno/ntno-challenge/tree/master/infrastructure.yml)
-* researched:
+* creation of source->build pipeline done via [cloudformation template](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/pipeline.yml)
+* [researched](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/notes/reference.md):
   * how to deploy docker applications with elastic container service (ecs)
   * how to redirect http traffic to https with nginx
   * how to automate certificate installation with bootstrap script or with the secure parameter store service
@@ -33,6 +33,8 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 * convert ecs cluster infrastructure to code
 * integrate ecs cluster with codedeploy
 * integrate codedeploy project with pipeline
+* add test stage to pipeline
+* research how to handle branch builds/deploys/e2e tests
 
 ---
 ---
