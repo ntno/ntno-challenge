@@ -35,12 +35,13 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 * integrate codedeploy project with pipeline
 
 ---
+---
 
 ## Coding
-#### Problem
+### Problem
 [regex/file parsing](https://www.hackerrank.com/challenges/validating-credit-card-number/problem)
 
-#### Solution
+### Solution
 see [code](https://github.com/ntno/ntno-challenge/blob/master/code/validate.py) for solution
 
 
