@@ -29,7 +29,6 @@ Parameters:
     SSHKeyName:
         Description: name of the ec2 key provisioned during prerequisite steps
         Type: 'AWS::EC2::KeyPair::KeyName'
-        Default: 'choose-key'
 
     EcrRepoName:
         Description: name of the ECR repository which contains the application
