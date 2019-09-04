@@ -26,8 +26,15 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
   * how to automate certificate installation with bootstrap script or with the secure parameter store service
 * cloud formation template to deploy nginx web app on ec2 with associated application load balancer
 
-**todo:**
+**in progress**
 * clean up deploy template (don't need all the resources that were in the example)
+  * create role for the ec2 instance
+    * needs create log access
+    * needs ecr pull access
+  * add ec2 instance profile
+  * create log group 
+
+**todo:**
 * finish https web app implementation 
   * started in branch `secure-nginx`
 * add 'deploy' step to pipeline via codedeploy
