@@ -35,7 +35,7 @@
 
 * [docker aws tutorial](https://www.ybrikman.com/writing/2015/11/11/running-docker-aws-ground-up/)
 * [how to install ecs software on ec2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-install.html)
-
+* [aws docs on installing docker on ec2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html)
 
 ### TODOs
 * add test stage to pipeline
