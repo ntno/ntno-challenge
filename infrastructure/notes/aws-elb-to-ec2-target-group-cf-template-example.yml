@@ -27,13 +27,17 @@ Mappings:
 
     RegionToAmazonAMI:
         us-east-1:
-            HVM64: ami-09479453c5cde9639
+            HVM64: ami-0b16d80945b1a9c7d	
+            #ami-09479453c5cde9639
         us-east-2:
-            HVM64: ami-023c8dbf8268fb3ca
+            HVM64: ami-0e7c12c1bedd6bf21	
+            #ami-023c8dbf8268fb3ca
         us-west-1:
-            HVM64: ami-06ff511fea5db2c99
+            HVM64: ami-08a12265d9e050d57	
+            #ami-06ff511fea5db2c99
         us-west-2:
-            HVM64: ami-0bb5806b2e825a199
+            HVM64: ami-0e434a58221275ed4	
+            #ami-0bb5806b2e825a199
 
     NetworkToSubnet:
         "10.0.0.0":
