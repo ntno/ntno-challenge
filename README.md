@@ -24,17 +24,20 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
   * how to deploy docker applications with elastic container service (ecs)
   * how to redirect http traffic to https with nginx
   * how to automate certificate installation with bootstrap script or with the secure parameter store service
-
+* cloud formation template to deploy nginx web app on ec2 with associated application load balancer
 
 **todo:**
+* clean up deploy template (don't need all the resources that were in the example)
 * finish https web app implementation 
   * started in branch `secure-nginx`
-* get ecs cluster working manually
-* convert ecs cluster infrastructure to code
-* integrate ecs cluster with codedeploy
-* integrate codedeploy project with pipeline
+* add 'deploy' step to pipeline via codedeploy
 * add test stage to pipeline
 * research how to handle branch builds/deploys/e2e tests
+
+
+### Install
+#### Prerequisites
+* create an amazon ec2 key pair and store securely
 
 ---
 ---
