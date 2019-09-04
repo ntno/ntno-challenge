@@ -14,7 +14,7 @@ RUN openssl req -x509 -newkey rsa:4096 \
 #configure awscli
 ARG AWS_ACCESS_KEY_ID="some_access_key_id"
 ARG AWS_SECRET_ACCESS_KEY="some_secret_access_key"
-ARG AWS_REGION="us-east-2"
+ARG AWS_REGION="some_default_region"
 RUN aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
 RUN aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
 RUN aws configure set region $AWS_REGION
