@@ -20,8 +20,8 @@
 
 AWSTemplateFormatVersion: 2010-09-09
 Description: >
-deploys the hello-world application to a public subnet in a new VPC
-accessible via application load balancer
+    deploys the hello-world application to a public subnet in a new VPC
+    accessible via application load balancer
 
 
 Parameters:
@@ -49,9 +49,7 @@ Mappings:
     NetworkToSubnet:
         "10.0.0.0":
             PubSubnetZoneA: "10.0.10.0/24"
-            PrivSubnetZoneA: "10.0.20.0/24"
             PubSubnetZoneB: "10.0.30.0/24"
-            PrivSubnetZoneB: "10.0.40.0/24"
 
 Resources:
 
@@ -69,7 +67,7 @@ Resources:
                   Value:
                       Ref: 'AWS::StackName'
 
-    # Internet accessable subnet in the first availability zone
+    # Internet accessible subnet in the first availability zone
     PubSubnetZoneA:
         Type: 'AWS::EC2::Subnet'
         Properties:
@@ -91,29 +89,8 @@ Resources:
                   Value:
                       'Fn::Join': [ ':', [ 'Public', 'Zone A', !Ref 'AWS::StackName' ] ]
 
-    # Non-internet accessable subnet in the first availability zone
-    PrivSubnetZoneA:
-        Type: 'AWS::EC2::Subnet'
-        Properties:
-            AvailabilityZone:
-                Fn::Select:
-                - '0'
-                - Fn::GetAZs:
-                    Ref: 'AWS::Region'
-            CidrBlock:
-                Fn::FindInMap:
-                - NetworkToSubnet
-                - '10.0.0.0'
-                - PrivSubnetZoneA
-            MapPublicIpOnLaunch: 'False'
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Private', 'Zone A', !Ref 'AWS::StackName' ] ]
 
-    # Internet accessable subnet in the second availability zone
+    # Internet accessible subnet in the second availability zone
     PubSubnetZoneB:
         Type: 'AWS::EC2::Subnet'
         Properties:
@@ -134,28 +111,6 @@ Resources:
                 - Key: 'Name'
                   Value:
                       'Fn::Join': [ ':', [ 'Public', 'Zone B', !Ref 'AWS::StackName' ] ]
-
-    # Non-internet accessable subnet in the second availability zone
-    PrivSubnetZoneB:
-        Type: 'AWS::EC2::Subnet'
-        Properties:
-            AvailabilityZone:
-                Fn::Select:
-                - '1'
-                - Fn::GetAZs:
-                    Ref: 'AWS::Region'
-            CidrBlock:
-                Fn::FindInMap:
-                - NetworkToSubnet
-                - '10.0.0.0'
-                - PrivSubnetZoneB
-            MapPublicIpOnLaunch: 'False'
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Private', 'Zone B', !Ref 'AWS::StackName' ] ]
 
     # Gateway to the internet
     InternetGateway:
@@ -239,46 +194,6 @@ Resources:
             RouteTableId:
                 Ref: 'RouteTablePubZoneB'
 
-    # Routing table for the private subnet in availability zone A
-    RouteTablePrivZoneA:
-        Type: AWS::EC2::RouteTable
-        Properties:
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Private', 'Zone A', !Ref 'AWS::StackName' ] ]
-
-    # Routing table for the private subnet in availability zone B
-    RouteTablePrivZoneB:
-        Type: AWS::EC2::RouteTable
-        Properties:
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Private', 'Zone B', !Ref 'AWS::StackName' ] ]
-
-    # Associate the private subnet with its routing table
-    RouteAssociationPrivSubnetZoneA:
-        Type: AWS::EC2::SubnetRouteTableAssociation
-        Properties:
-            SubnetId:
-                Ref: 'PrivSubnetZoneA'
-            RouteTableId:
-                Ref: 'RouteTablePrivZoneA'
-
-    # Associate the private subnet with its routing table
-    RouteAssociationPrivSubnetZoneB:
-        Type: AWS::EC2::SubnetRouteTableAssociation
-        Properties:
-            SubnetId:
-                Ref: 'PrivSubnetZoneB'
-            RouteTableId:
-                Ref: 'RouteTablePrivZoneB'
-
     # EC2 Security Group Allowing Port 22 and 80 from anywhere
     EC2SecurityGroup:
         Type: AWS::EC2::SecurityGroup
@@ -317,7 +232,7 @@ Resources:
         Roles:
           - 'ecsInstanceRole'
 
-    # Linux Instance with Apache running on Port 80
+    # Linux Instance with docker running nginx webapp on port 80
     AmazonLinuxInstance:
       Type: AWS::EC2::Instance
       Properties:
