@@ -16,6 +16,19 @@
 *  !! [nginx config generator](https://nginxconfig.io/?0.non_www=false&0.php=false&0.index=index.html&0.fallback_html)
 * [generating cert in dockerfile(?)](https://codefresh.io/docker-tutorial/using-docker-generate-ssl-certificates/)
 * [might be useful for adding certs](https://github.com/KyleAMathews/docker-nginx)
+
+```
+#To use SSL, put your certs in /etc/nginx/ssl and enable the default-ssl site:
+
+ADD server.crt /etc/nginx/ssl/
+ADD server.key /etc/nginx/ssl/
+RUN ln -s /etc/nginx/sites-available/default-ssl /etc/nginx/sites-enabled/default-ssl
+
+#When you run it, you'll want to make port 443 available, e.g.:
+
+$ docker run -p 80:80 -p 443:443 -d mysite
+```
+
 * [use bootstrap script to make the cert](https://forums.docker.com/t/get-ssl-certificate-for-use-in-docker-container/42069/3)
 * [docker + self signed cert tutorial](https://www.johnmackenzie.co.uk/post/creating-self-signed-ssl-certificates-for-docker-and-nginx/)
 * !! [use docker secrets to store the certs](https://docs.docker.com/ee/ucp/interlock/usage/tls/)
@@ -59,3 +72,10 @@
 `docker exec -it ntno-challenge bash`
 
 `docker stop ntno-challenge && docker rm ntno-challenge`
+
+
+`docker build generate-certificate \
+   -t generate-certificate \
+   --build-arg AWS_ACCESS_KEY_ID="$(aws configure get aws_access_key_id)" \
+   --build-arg AWS_SECRET_ACCESS_KEY="$(aws configure get aws_secret_access_key)" \
+   --no-cache` 

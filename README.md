@@ -45,9 +45,27 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 ### Install
 #### Prerequisites
 * create an amazon ec2 key pair and store securely
+* aws user with the following permissions 
+  * add parameters to the systems manager parameter store
+  * create/update/delete cloudformation stacks
+* docker
+* awscli
 
----
----
+#### Step 1 
+generate certificate and add to the systems manager parameter store
+
+`docker build generate-certificate \
+   -t generate-certificate \
+   --build-arg AWS_ACCESS_KEY_ID="$(aws configure get aws_access_key_id)" \
+   --build-arg AWS_SECRET_ACCESS_KEY="$(aws configure get aws_secret_access_key)" \
+   --no-cache` 
+
+#### Step 2
+#### Step 3
+#### Step 4
+
+
+
 
 ## Coding
 ### Problem
