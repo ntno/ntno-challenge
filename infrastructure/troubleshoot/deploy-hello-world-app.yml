@@ -48,7 +48,6 @@ Resources:
     Properties:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
-      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
   PubSubnetZoneA:
     Type: 'AWS::EC2::Subnet'
     Properties:
