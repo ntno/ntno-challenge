@@ -348,7 +348,8 @@ Resources:
         LoadBalancerArn:
             Ref: ApplicationLoadBalancer
         Port: 80
-
+        Protocol: HTTP
+        
     SelfSignedCertificate:
         Type: AWS::ElasticLoadBalancingV2::ListenerCertificate
         Properties: 
