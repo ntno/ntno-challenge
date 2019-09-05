@@ -1,6 +1,10 @@
-#https://github.com/getcft/aws-elb-to-ec2-target-group-cf-template/blob/master/elb-to-ec2-target-group-cf-template.yml
-# Copyright [2018] [Phil Chen]
+# Original template, Copyright [2018] [Phil Chen]
+# https://github.com/getcft/aws-elb-to-ec2-target-group-cf-template/blob/master/elb-to-ec2-target-group-cf-template.yml
 
+# Modified template by ntno
+# https://github.com/ntno
+
+######################################################################################
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -12,44 +16,40 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+######################################################################################
 
 AWSTemplateFormatVersion: 2010-09-09
-Description: Creates a VPC and a ELB with a EC2 Target Group Associated
+Description: >
+    deploys the hello-world application to a public subnet in a new VPC
+    accessible via application load balancer
+
 
 Parameters:
 
     SSHKeyName:
-        Description: 'Name of the ec2 key you need one to use this template'
+        Description: name of the ec2 key provisioned during prerequisite steps
         Type: 'AWS::EC2::KeyPair::KeyName'
         Default: 'choose-key'
 
-Mappings:
+    
 
+Mappings:
+    #aws ssm get-parameter --name "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2" --region us-east-1
+    #amazon linux 2 AMI (must include extras or the boot script will not work)
     RegionToAmazonAMI:
         us-east-1:
-            HVM64: ami-09479453c5cde9639
-            #ecs: ami-0b16d80945b1a9c7d	
-            #
+            HVM64: ami-0b69ea66ff7391e80
         us-east-2:
-            HVM64: ami-00c03f7f7f2ec15c3 #amazon linux 2 with extras
-                #ami-023c8dbf8268fb3ca
-            #ecs: ami-0e7c12c1bedd6bf21	
-            #
+            HVM64: ami-00c03f7f7f2ec15c3
         us-west-1:
-            HVM64: ami-06ff511fea5db2c99
-            #ecs: ami-08a12265d9e050d57	
-            #
+            HVM64: ami-0245d318c6788de52
         us-west-2:
-            HVM64: ami-0bb5806b2e825a199
-            #ecs: ami-0e434a58221275ed4	
-            #
+            HVM64: ami-04b762b4289fba92b
 
     NetworkToSubnet:
         "10.0.0.0":
             PubSubnetZoneA: "10.0.10.0/24"
-            PrivSubnetZoneA: "10.0.20.0/24"
             PubSubnetZoneB: "10.0.30.0/24"
-            PrivSubnetZoneB: "10.0.40.0/24"
 
 Resources:
 
@@ -89,27 +89,6 @@ Resources:
                   Value:
                       'Fn::Join': [ ':', [ 'Public', 'Zone A', !Ref 'AWS::StackName' ] ]
 
-    # Non-internet accessable subnet in the first availability zone
-    PrivSubnetZoneA:
-        Type: 'AWS::EC2::Subnet'
-        Properties:
-            AvailabilityZone:
-                Fn::Select:
-                - '0'
-                - Fn::GetAZs:
-                    Ref: 'AWS::Region'
-            CidrBlock:
-                Fn::FindInMap:
-                - NetworkToSubnet
-                - '10.0.0.0'
-                - PrivSubnetZoneA
-            MapPublicIpOnLaunch: 'False'
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Private', 'Zone A', !Ref 'AWS::StackName' ] ]
 
     # Internet accessable subnet in the second availability zone
     PubSubnetZoneB:
@@ -132,28 +111,6 @@ Resources:
                 - Key: 'Name'
                   Value:
                       'Fn::Join': [ ':', [ 'Public', 'Zone B', !Ref 'AWS::StackName' ] ]
-
-    # Non-internet accessable subnet in the second availability zone
-    PrivSubnetZoneB:
-        Type: 'AWS::EC2::Subnet'
-        Properties:
-            AvailabilityZone:
-                Fn::Select:
-                - '1'
-                - Fn::GetAZs:
-                    Ref: 'AWS::Region'
-            CidrBlock:
-                Fn::FindInMap:
-                - NetworkToSubnet
-                - '10.0.0.0'
-                - PrivSubnetZoneB
-            MapPublicIpOnLaunch: 'False'
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Private', 'Zone B', !Ref 'AWS::StackName' ] ]
 
     # Gateway to the internet
     InternetGateway:
@@ -236,46 +193,6 @@ Resources:
                 Ref: 'PubSubnetZoneB'
             RouteTableId:
                 Ref: 'RouteTablePubZoneB'
-
-    # Routing table for the private subnet in availability zone A
-    RouteTablePrivZoneA:
-        Type: AWS::EC2::RouteTable
-        Properties:
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Private', 'Zone A', !Ref 'AWS::StackName' ] ]
-
-    # Routing table for the private subnet in availability zone B
-    RouteTablePrivZoneB:
-        Type: AWS::EC2::RouteTable
-        Properties:
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Private', 'Zone B', !Ref 'AWS::StackName' ] ]
-
-    # Associate the private subnet with its routing table
-    RouteAssociationPrivSubnetZoneA:
-        Type: AWS::EC2::SubnetRouteTableAssociation
-        Properties:
-            SubnetId:
-                Ref: 'PrivSubnetZoneA'
-            RouteTableId:
-                Ref: 'RouteTablePrivZoneA'
-
-    # Associate the private subnet with its routing table
-    RouteAssociationPrivSubnetZoneB:
-        Type: AWS::EC2::SubnetRouteTableAssociation
-        Properties:
-            SubnetId:
-                Ref: 'PrivSubnetZoneB'
-            RouteTableId:
-                Ref: 'RouteTablePrivZoneB'
 
     # EC2 Security Group Allowing Port 22 and 80 from anywhere
     EC2SecurityGroup:
