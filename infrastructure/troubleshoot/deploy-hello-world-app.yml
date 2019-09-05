@@ -102,7 +102,6 @@ Resources:
       Path: /
       Roles:
         - 'ecsInstanceRole'
-      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
   AmazonLinuxInstance:
     Type: AWS::EC2::Instance
     Properties:
