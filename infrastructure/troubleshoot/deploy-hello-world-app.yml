@@ -61,7 +61,7 @@ Mappings:
     NetworkToSubnet:
         "10.0.0.0":
             PubSubnetZoneA: "10.0.10.0/24"
-            PubSubnetZoneB: "10.0.30.0/24"
+            # PubSubnetZoneB: "10.0.30.0/24"
 
 Resources:
 
@@ -102,27 +102,27 @@ Resources:
                       'Fn::Join': [ ':', [ 'Public', 'Zone A', !Ref 'AWS::StackName' ] ]
 
 
-    # Internet accessible subnet in the second availability zone
-    PubSubnetZoneB:
-        Type: 'AWS::EC2::Subnet'
-        Properties:
-            AvailabilityZone:
-                Fn::Select:
-                - '1'
-                - Fn::GetAZs:
-                    Ref: 'AWS::Region'
-            CidrBlock:
-                Fn::FindInMap:
-                - NetworkToSubnet
-                - '10.0.0.0'
-                - PubSubnetZoneB
-            MapPublicIpOnLaunch: 'True'
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Public', 'Zone B', !Ref 'AWS::StackName' ] ]
+    # # Internet accessible subnet in the second availability zone
+    # PubSubnetZoneB:
+    #     Type: 'AWS::EC2::Subnet'
+    #     Properties:
+    #         AvailabilityZone:
+    #             Fn::Select:
+    #             - '1'
+    #             - Fn::GetAZs:
+    #                 Ref: 'AWS::Region'
+    #         CidrBlock:
+    #             Fn::FindInMap:
+    #             - NetworkToSubnet
+    #             - '10.0.0.0'
+    #             - PubSubnetZoneB
+    #         MapPublicIpOnLaunch: 'True'
+    #         VpcId:
+    #             Ref: 'VPC'
+    #         Tags:
+    #             - Key: 'Name'
+    #               Value:
+    #                   'Fn::Join': [ ':', [ 'Public', 'Zone B', !Ref 'AWS::StackName' ] ]
 
     # Gateway to the internet
     InternetGateway:
@@ -153,16 +153,16 @@ Resources:
                   Value:
                       'Fn::Join': [ ':', [ 'Public', 'Zone A', !Ref 'AWS::StackName' ] ]
 
-    # Routing table for the public subnet in availability zone B
-    RouteTablePubZoneB:
-        Type: AWS::EC2::RouteTable
-        Properties:
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Public', 'Zone B', !Ref 'AWS::StackName' ] ]
+    # # Routing table for the public subnet in availability zone B
+    # RouteTablePubZoneB:
+    #     Type: AWS::EC2::RouteTable
+    #     Properties:
+    #         VpcId:
+    #             Ref: 'VPC'
+    #         Tags:
+    #             - Key: 'Name'
+    #               Value:
+    #                   'Fn::Join': [ ':', [ 'Public', 'Zone B', !Ref 'AWS::StackName' ] ]
 
     # Route traffic through the internet gateway
     RoutePubZoneA:
@@ -176,17 +176,17 @@ Resources:
             RouteTableId:
                 Ref: 'RouteTablePubZoneA'
 
-    # Route traffic through the internet gateway
-    RoutePubZoneB:
-        DependsOn:
-            - InternetGateway
-        Type: AWS::EC2::Route
-        Properties:
-            DestinationCidrBlock: 0.0.0.0/0
-            GatewayId:
-                Ref: 'InternetGateway'
-            RouteTableId:
-                Ref: 'RouteTablePubZoneB'
+    # # Route traffic through the internet gateway
+    # RoutePubZoneB:
+    #     DependsOn:
+    #         - InternetGateway
+    #     Type: AWS::EC2::Route
+    #     Properties:
+    #         DestinationCidrBlock: 0.0.0.0/0
+    #         GatewayId:
+    #             Ref: 'InternetGateway'
+    #         RouteTableId:
+    #             Ref: 'RouteTablePubZoneB'
 
     # Associate public subnet to its routing table
     RouteAssociationPubSubnetZoneA:
@@ -197,14 +197,14 @@ Resources:
             RouteTableId:
                 Ref: 'RouteTablePubZoneA'
 
-    # Associate public subnet to its routing table
-    RouteAssociationPubSubnetZoneB:
-        Type: AWS::EC2::SubnetRouteTableAssociation
-        Properties:
-            SubnetId:
-                Ref: 'PubSubnetZoneB'
-            RouteTableId:
-                Ref: 'RouteTablePubZoneB'
+    # # Associate public subnet to its routing table
+    # RouteAssociationPubSubnetZoneB:
+    #     Type: AWS::EC2::SubnetRouteTableAssociation
+    #     Properties:
+    #         SubnetId:
+    #             Ref: 'PubSubnetZoneB'
+    #         RouteTableId:
+    #             Ref: 'RouteTablePubZoneB'
 
     # EC2 Security Group Allowing Port 22, 80, 443 from anywhere
     EC2SecurityGroup:
