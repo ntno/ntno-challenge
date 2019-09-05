@@ -64,9 +64,9 @@ $ docker run -p 80:80 -p 443:443 -d mysite
 
 `docker build hello-world -t hello-world`
 
-`docker run --name ntno-challenge -p 8080:80 -d hello-world:latest` 
+`docker run --name ntno-challenge -p 80:80 -p 443:443 -d hello-world:latest` 
 
-`docker run --name ntno-challenge -p 8080:80 hello-world:latest` 
+`docker run --name ntno-challenge -p 80:80 -p 443:443 hello-world:latest` 
 
 `docker exec -it ntno-challenge bash`
 
