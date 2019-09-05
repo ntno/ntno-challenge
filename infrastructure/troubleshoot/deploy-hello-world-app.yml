@@ -31,7 +31,8 @@ Mappings:
             #ecs: ami-0b16d80945b1a9c7d	
             #
         us-east-2:
-            HVM64: ami-023c8dbf8268fb3ca
+            HVM64: ami-00c03f7f7f2ec15c3 #amazon linux 2 with extras
+                #ami-023c8dbf8268fb3ca
             #ecs: ami-0e7c12c1bedd6bf21	
             #
         us-west-1:
@@ -340,7 +341,13 @@ Resources:
         UserData:
           Fn::Base64: !Sub |
             #!/bin/bash -xe
-            yum install -y awscli aws-cfn-bootstrap docker
+            sudo yum update -y
+            sudo yum install -y aws-cfn-bootstrap
+            sudo amazon-linux-extras install docker
+            #start the docker daemon
+            sudo service docker start
+            #add 'ec2-user' to the docker group
+            sudo usermod -a -G docker ec2-user
             # log in to ecr
             $(aws ecr get-login --no-include-email --region ${AWS::Region})
             # pull latest image
