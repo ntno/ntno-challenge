@@ -214,21 +214,19 @@ Resources:
             VpcId:
               Ref: VPC
             SecurityGroupIngress:
-                - IpProtocol: tcp
-                  FromPort: 22
-                  ToPort: 22
-                  CidrIp: 0.0.0.0/0
-                - IpProtocol: tcp
-                  FromPort: 80
-                  ToPort: 80
-                  # SourceSecurityGroupId:
-                  #     Ref: ELBSecurityGroup
-                - IpProtocol: tcp
-                  FromPort: 443
-                  ToPort: 443
-                  # SourceSecurityGroupId:
-                  #     Ref: ELBSecurityGroup
-                
+              - IpProtocol: tcp
+                FromPort: 80
+                ToPort: 80
+                CidrIp: 0.0.0.0/0
+              - IpProtocol: tcp
+                FromPort: 22
+                ToPort: 22
+                CidrIp: 0.0.0.0/0
+              - IpProtocol: tcp
+                FromPort: 443
+                ToPort: 443
+                CidrIp: 0.0.0.0/0                
+
 
     # # ELB Security Group allowing Port 80 and 443 from anywhere
     # ELBSecurityGroup:
