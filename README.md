@@ -10,6 +10,7 @@
 * automated testing of infrastructure
 * scripts only (no manual config)
 
+
 ### Solution
 see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastructure) for partial solution
 
@@ -44,9 +45,11 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 ### Install
 #### Prerequisites
 * create an amazon ec2 key pair and store securely
+* s3 bucket to store cloud formation templates (ex: ntno-misc)
 * aws user with the following permissions 
   * add parameters to the systems manager parameter store
   * create/update/delete cloudformation stacks
+  * write/read for the cloud formation template bucket
 * docker
 * awscli
 
