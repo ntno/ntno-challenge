@@ -31,7 +31,20 @@ Parameters:
         Type: 'AWS::EC2::KeyPair::KeyName'
         Default: 'choose-key'
 
+    EcrRepoName:
+        Description: name of the ECR repository which contains the application
+        Type: String
+        Default: hello-world
     
+    ImageTag: 
+        Description: ECR repository tag for the application image 
+        Type: String
+        Default: latest
+    
+    LogGroupName:
+        Description: name of the cloud watch log group to send application logs to
+        Type: String
+        Default: hello-world-docker
 
 Mappings:
     #aws ssm get-parameter --name "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2" --region us-east-1
@@ -268,9 +281,9 @@ Resources:
             # log in to ecr
             $(aws ecr get-login --no-include-email --region ${AWS::Region})
             # pull latest image
-            docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/hello-world:latest
+            docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
             # start container
-            docker run --log-driver=awslogs --log-opt awslogs-group=ntno-challenge-docker-logs --name ntno-challenge -p 80:80 -d ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/hello-world:latest
+            docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} -p 80:80 -d ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
             # signal cloud formation that boot has completed   
             /opt/aws/bin/cfn-signal \
                 -e $? \
