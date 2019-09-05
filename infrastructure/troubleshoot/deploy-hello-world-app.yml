@@ -333,35 +333,22 @@ Resources:
           SubnetId:
             Ref: PubSubnetZoneA
         Tenancy: default
-        UserData: !Base64 
-          'Fn::Join':
-            - ''
-            - - |
-                #!/bin/bash -xe
-              - |
-                yum install -y awscli aws-cfn-bootstrap
-              - |
-                # log in to ecr
-              - '$(aws ecr get-login --no-include-email --region us-east-2)'
-              - |
-                # pull latest image
-              - 'docker pull 281517792612.dkr.ecr.us-east-2.amazonaws.com/hello-world:latest'
-              - | 
-                # start container
-              - 'docker run --log-driver=awslogs --log-opt awslogs-group=ntno-challenge-docker-logs --name ntno-challenge -p 8080:80 -d 281517792612.dkr.ecr.us-east-2.amazonaws.com/hello-world:latest'
-              
-          # Fn::Base64: !Sub |
-          #   #!/bin/bash -xe
-          #   cd /tmp
-          #   yum update -y
-          #   yum install -y httpd24
-          #   echo "Healthy" > /var/www/html/index.html
-          #   service httpd start
-          #   /opt/aws/bin/cfn-signal \
-          #     -e $? \
-          #     --stack ${AWS::StackName} \
-          #     --resource AmazonLinuxInstance \
-          #     --region ${AWS::Region}
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash -xe
+            yum install -y awscli aws-cfn-bootstrap
+            # log in to ecr
+            $(aws ecr get-login --no-include-email --region ${AWS::Region})
+            # pull latest image
+            docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/hello-world:latest
+            # start container
+            docker run --log-driver=awslogs --log-opt awslogs-group=ntno-challenge-docker-logs --name ntno-challenge -p 80:80 -d ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/hello-world:latest
+            # signal cloud formation that boot has completed   
+            /opt/aws/bin/cfn-signal \
+                -e $? \
+                --stack ${AWS::StackName} \
+                --resource AmazonLinuxInstance \
+                --region ${AWS::Region}
 
     # Target Group
     EC2TargetGroup:
