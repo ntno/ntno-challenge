@@ -344,7 +344,7 @@ Resources:
                 Host: '#{host}'
                 Path: '/#{path}'
                 Query: '#{query}'
-                StatusCode": 'HTTP_301'
+                StatusCode: 'HTTP_301'
         LoadBalancerArn:
             Ref: ApplicationLoadBalancer
 
