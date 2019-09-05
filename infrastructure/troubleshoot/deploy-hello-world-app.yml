@@ -347,6 +347,7 @@ Resources:
                 StatusCode: 'HTTP_301'
         LoadBalancerArn:
             Ref: ApplicationLoadBalancer
+        Port: 80
 
     SelfSignedCertificate:
         Type: AWS::ElasticLoadBalancingV2::ListenerCertificate
