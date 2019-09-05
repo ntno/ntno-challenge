@@ -206,11 +206,11 @@ Resources:
             RouteTableId:
                 Ref: 'RouteTablePubZoneB'
 
-    # EC2 Security Group Allowing Port 22 and 80 from anywhere
+    # EC2 Security Group Allowing Port 22, 80, 443 from anywhere
     EC2SecurityGroup:
         Type: AWS::EC2::SecurityGroup
         Properties:
-            GroupDescription: 'SSH and Port 80'
+            GroupDescription: 'SSH and Ports 80/443'
             VpcId:
               Ref: VPC
             SecurityGroupIngress:
@@ -223,18 +223,28 @@ Resources:
                   ToPort: 80
                   SourceSecurityGroupId:
                       Ref: ELBSecurityGroup
+                - IpProtocol: tcp
+                  FromPort: 443
+                  ToPort: 443
+                  SourceSecurityGroupId:
+                      Ref: ELBSecurityGroup
+                
 
-    # ELB Security Group allowing Port 80 from anywhere
+    # ELB Security Group allowing Port 80 and 443 from anywhere
     ELBSecurityGroup:
         Type: AWS::EC2::SecurityGroup
         Properties:
-            GroupDescription: 'SSH and Port 80'
+            GroupDescription: 'SSH and Ports 80/443'
             VpcId:
               Ref: VPC
             SecurityGroupIngress:
                 - IpProtocol: tcp
                   FromPort: 80
                   ToPort: 80
+                  CidrIp: 0.0.0.0/0
+                - IpProtocol: tcp
+                  FromPort: 443
+                  ToPort: 443
                   CidrIp: 0.0.0.0/0
 
     EcrAndCloudWatchProfile:
@@ -244,7 +254,7 @@ Resources:
         Roles:
           - 'ecsInstanceRole'
 
-    # Linux Instance with docker running nginx webapp on port 80
+    # Linux Instance with docker running nginx webapp on port 80/443
     AmazonLinuxInstance:
       Type: AWS::EC2::Instance
       Properties:
@@ -282,7 +292,7 @@ Resources:
             # pull latest image
             docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
             # start container
-            docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} -p 80:80 -d ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
+            docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} -p 443:443 -p 80:80 -d ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
             # signal cloud formation that boot has completed   
             /opt/aws/bin/cfn-signal \
                 -e $? \
