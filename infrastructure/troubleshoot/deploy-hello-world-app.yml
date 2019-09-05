@@ -348,10 +348,21 @@ Resources:
         LoadBalancerArn:
             Ref: ApplicationLoadBalancer
 
+    SelfSignedCertificate:
+        Type: AWS::ElasticLoadBalancingV2::ListenerCertificate
+        Properties: 
+            Certificates: 
+                - 
+                    CertificateArn: arn:aws:iam::281517792612:server-certificate/ExampleCertificate
+            ListenerArn: 
+                Ref: ALBListenerForHTTPS
+        
     ALBListenerForHTTPS:
       Type: AWS::ElasticLoadBalancingV2::Listener
       Properties:
-        DefaultActions:
+         Certificates: 
+            - Ref: SelfSignedCertificate
+        DefaultActions: 
           - Type: forward
             TargetGroupArn:
               Ref: EC2TargetGroup
@@ -359,6 +370,8 @@ Resources:
             Ref: ApplicationLoadBalancer
         Port: 443
         Protocol: HTTPS
+        SslPolicy: String
+
     
     ApplicationLoadBalancer:
       Type: AWS::ElasticLoadBalancingV2::LoadBalancer
