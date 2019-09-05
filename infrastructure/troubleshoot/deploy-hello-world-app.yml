@@ -69,13 +69,11 @@ Resources:
       DestinationCidrBlock: '0.0.0.0/0'
       GatewayId: !Ref InternetGateway
       RouteTableId: !Ref RouteTablePubZoneA
-      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
   RouteAssociationPubSubnetZoneA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
         SubnetId: !Ref PubSubnetZoneA
         RouteTableId: !Ref RouteTablePubZoneA
-        Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
   EC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
