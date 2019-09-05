@@ -10,6 +10,7 @@
 * automated testing of infrastructure
 * scripts only (no manual config)
 
+
 ### Solution
 see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastructure) for partial solution
 
@@ -33,10 +34,9 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
     * needs ecr pull access
   * add ec2 instance profile
   * create log group 
+* finish https web app implementation 
 
 **todo:**
-* finish https web app implementation 
-  * started in branch `secure-nginx`
 * add 'deploy' step to pipeline via codedeploy
 * add test stage to pipeline
 * research how to handle branch builds/deploys/e2e tests
@@ -45,9 +45,30 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 ### Install
 #### Prerequisites
 * create an amazon ec2 key pair and store securely
+* s3 bucket to store cloud formation templates (ex: ntno-misc)
+* aws user with the following permissions 
+  * add parameters to the systems manager parameter store
+  * create/update/delete cloudformation stacks
+  * write/read for the cloud formation template bucket
+* docker
+* awscli
 
----
----
+#### Step 1 
+generate certificate and add to the systems manager parameter store
+
+`docker build generate-certificate \
+   -t generate-certificate \
+   --build-arg AWS_ACCESS_KEY_ID="$(aws configure get aws_access_key_id)" \
+   --build-arg AWS_SECRET_ACCESS_KEY="$(aws configure get aws_secret_access_key)" \
+   --build-arg AWS_REGION="$(aws configure get region)" \
+   --no-cache` 
+
+#### Step 2
+#### Step 3
+#### Step 4
+
+
+
 
 ## Coding
 ### Problem

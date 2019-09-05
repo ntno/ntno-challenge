@@ -1,10 +1,12 @@
 #!/bin/sh
 Region=$(aws configure get region)
-BucketName=ntno-code-pipeline-artifacts-${Region}
+BucketName="ntno-code-pipeline-artifacts-${Region}"
 StackName=$BucketName
-TemplateName=artifact-bucket.yml
+templateName="cft/artifact-bucket.yml"
 
-aws cloudformation create-stack --template-body file://${TemplateName} \
+aws s3 cp $templateName s3://ntno-misc/$templateName --sse
+aws cloudformation validate-template --template-body file://$templateName
+aws cloudformation update-stack --template-url https://ntno-misc.s3.amazonaws.com/$templateName \
                                 --stack-name ${StackName}  \
                                 --parameters  ParameterKey=CustomBucketName,ParameterValue=${BucketName} \
                                               ParameterKey=DomainTag,ParameterValue=personal 
