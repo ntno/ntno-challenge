@@ -1,0 +1,157 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: deploys the hello-world application to a public subnet in a new VPC
+Parameters:
+  SSHKeyName:
+    Description: name of the ec2 key provisioned during prerequisite steps
+    Type: 'AWS::EC2::KeyPair::KeyName'
+  EcrRepoName:
+    Description: name of the ECR repository which contains the application
+    Type: String
+    Default: hello-world
+  ImageTag: 
+    Description: ECR repository tag for the application image 
+    Type: String
+    Default: latest
+  LogGroupName:
+    Description: name of the cloud watch log group to send application logs to
+    Type: String
+    Default: hello-world-docker
+  AmazonLinux2Ami:
+    Description: | 
+      AMI id for the latest linux 2 ami with extras installed.
+      See `aws ssm get-parameter --name "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2" --region us-east-1`
+    Type: String
+    Default: ami-00c03f7f7f2ec15c3
+    #us-east-1: ami-0b69ea66ff7391e80
+    #us-east-2: ami-00c03f7f7f2ec15c3
+  DomainTag:
+    Type: String
+    Description: resource tag for organization
+  ProjectTag:
+    Type: String
+    Description: resource tag for organization
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+        CidrBlock: !Sub '10.0.0.0/16'
+        EnableDnsSupport: true
+        EnableDnsHostnames: true
+        InstanceTenancy: 'default'
+        Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  PubSubnetZoneA:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select ['0', !GetAZs '']
+      CidrBlock: '10.0.10.0/24'
+      MapPublicIpOnLaunch: True
+      VpcId: !Ref VPC
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  RouteTablePubZoneA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  RoutePubZoneA:
+    DependsOn:
+        - InternetGateway
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTablePubZoneA
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  RouteAssociationPubSubnetZoneA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+        SubnetId: !Ref PubSubnetZoneA
+        RouteTableId: !Ref RouteTablePubZoneA
+        Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'SSH and Ports 80/443'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0                
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  EcrAndCloudWatchProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - 'ecsInstanceRole'
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  AmazonLinuxInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: Ref AmazonLinux2Ami
+      InstanceInitiatedShutdownBehavior: stop
+      InstanceType: t2.nano
+      IamInstanceProfile: !Ref EcrAndCloudWatchProfile
+      KeyName: !Ref SSHKeyName
+      Monitoring: True
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: True
+        DeviceIndex: '0'
+        GroupSet:
+        - !Ref EC2SecurityGroup
+        SubnetId: !Ref PubSubnetZoneA
+      Tenancy: default
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          sudo yum update -y
+          sudo yum install -y aws-cfn-bootstrap
+          sudo amazon-linux-extras install docker
+          #start the docker daemon
+          sudo service docker start
+          #add 'ec2-user' to the docker group
+          sudo usermod -a -G docker ec2-user
+          # log in to ecr
+          $(aws ecr get-login --no-include-email --region ${AWS::Region})
+          # pull latest image
+          docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
+          # start container
+          docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} -p 443:443 -p 80:80 -d ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
+          # signal cloud formation that boot has completed   
+          /opt/aws/bin/cfn-signal \
+              -e $? \
+              --stack ${AWS::StackName} \
+              --resource AmazonLinuxInstance \
+              --region ${AWS::Region}
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+
+Outputs:
+  VPC:
+    Description: 'Virtual Private Cloud'
+    Value: !Ref VPC
+  EC2Instance:
+    Description: 'EC2 Instance'
+    Value: !Ref AmazonLinuxInstance
+  EC2PublicIp:
+    Description: 'public IP of the ec2 instance'
+    Value: !GetAtt 
+      - AmazonLinuxInstance
+      - PublicIp
