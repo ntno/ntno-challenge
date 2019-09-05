@@ -14,4 +14,4 @@ aws cloudformation update-stack --template-url https://ntno-misc.s3.amazonaws.co
                     --parameters    ParameterKey=LogGroupName,ParameterValue="$logGroupName" \
                                     ParameterKey=SSHKeyName,ParameterValue="$sshKeyPair" \
                                     ParameterKey=DomainTag,ParameterValue=personal \
-                                    ParameterKey=ProjectTag,ParameterValue=ntno-challenge \
+                                    ParameterKey=ProjectTag,ParameterValue=ntno-challenge 

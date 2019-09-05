@@ -123,36 +123,47 @@ Resources:
   AmazonLinuxInstance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: !Ref AmazonLinux2Ami
+      ImageId:
+        !Ref AmazonLinux2Ami
       InstanceInitiatedShutdownBehavior: stop
       InstanceType: t2.nano
       IamInstanceProfile: !Ref EcrAndCloudWatchProfile
-      KeyName: !Ref SSHKeyName
-      Monitoring: True
+      KeyName:
+        Ref: SSHKeyName
+      Monitoring: 'true'
       NetworkInterfaces:
-      - AssociatePublicIpAddress: True
+      - AssociatePublicIpAddress: 'true'
         DeviceIndex: '0'
         GroupSet:
         - !Ref EC2SecurityGroup
-        SubnetId: !Ref PubSubnetZoneA
+        SubnetId:
+          Ref: PubSubnetZoneA
       Tenancy: default
       UserData:
         Fn::Base64: !Sub |
-          'sudo yum update -y
+          #!/bin/bash -xe
+          sudo yum update -y
           sudo yum install -y aws-cfn-bootstrap
           sudo amazon-linux-extras install docker
+          #start the docker daemon
           sudo service docker start
+          #add 'ec2-user' to the docker group
           sudo usermod -a -G docker ec2-user
+          # log in to ecr
           $(aws ecr get-login --no-include-email --region ${AWS::Region})
+          # pull latest image
           docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
+          # start container
           docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} -p 443:443 -p 80:80 -d ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
+          # signal cloud formation that boot has completed   
           /opt/aws/bin/cfn-signal \
               -e $? \
               --stack ${AWS::StackName} \
               --resource AmazonLinuxInstance \
-              --region ${AWS::Region}'
-      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+              --region ${AWS::Region}
 
+ 
+#done
 Outputs:
   VPC:
     Description: 'Virtual Private Cloud'
@@ -160,6 +171,3 @@ Outputs:
   EC2Instance:
     Description: 'EC2 Instance'
     Value: !Ref AmazonLinuxInstance
-  AppURL:
-      Value: !Join ["", ["https://", !GetAtt AmazonLinuxInstance.PublicDnsName, ":443"]]
-      Description: URL for the app 
