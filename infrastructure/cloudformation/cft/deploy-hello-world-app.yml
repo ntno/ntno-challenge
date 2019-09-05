@@ -33,17 +33,14 @@ Parameters:
     EcrRepoName:
         Description: name of the ECR repository which contains the application
         Type: String
-        Default: hello-world
     
     ImageTag: 
         Description: ECR repository tag for the application image 
         Type: String
-        Default: latest
     
     LogGroupName:
         Description: name of the cloud watch log group to send application logs to
         Type: String
-        Default: hello-world-docker
 
 Mappings:
     #aws ssm get-parameter --name "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2" --region us-east-1

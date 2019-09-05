@@ -11,5 +11,7 @@ aws cloudformation validate-template --template-body file://$templateName
 aws cloudformation update-stack --template-url https://ntno-misc.s3.amazonaws.com/$templateName \
                     --capabilities CAPABILITY_NAMED_IAM \
                     --stack-name $stackName \
-                    --parameters  ParameterKey=LogGroupName,ParameterValue="$logGroupName" \
-                    --parameters  ParameterKey=SSHKeyName,ParameterValue="$sshKeyPair" 
+                    --parameters  ParameterKey=LogGroupName,ParameterValue=$logGroupName \
+                                    ParameterKey=SSHKeyName,ParameterValue=$sshKeyPair \
+                                    ParameterKey=EcrRepoName,ParameterValue=hello-world \
+                                    ParameterKey=ImageTag,ParameterValue=latest 
