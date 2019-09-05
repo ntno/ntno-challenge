@@ -67,7 +67,7 @@ Resources:
                   Value:
                       Ref: 'AWS::StackName'
 
-    # Internet accessable subnet in the first availability zone
+    # Internet accessible subnet in the first availability zone
     PubSubnetZoneA:
         Type: 'AWS::EC2::Subnet'
         Properties:
@@ -90,7 +90,7 @@ Resources:
                       'Fn::Join': [ ':', [ 'Public', 'Zone A', !Ref 'AWS::StackName' ] ]
 
 
-    # Internet accessable subnet in the second availability zone
+    # Internet accessible subnet in the second availability zone
     PubSubnetZoneB:
         Type: 'AWS::EC2::Subnet'
         Properties:
@@ -232,7 +232,7 @@ Resources:
         Roles:
           - 'ecsInstanceRole'
 
-    # Linux Instance with Apache running on Port 80
+    # Linux Instance with docker running nginx webapp on port 80
     AmazonLinuxInstance:
       Type: AWS::EC2::Instance
       Properties:
