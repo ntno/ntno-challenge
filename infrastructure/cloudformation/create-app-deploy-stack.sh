@@ -4,7 +4,7 @@ templateName="cft/deploy-hello-world-app.yml"
 stackName="ntno-challenge-app-deploy"
 
 sshKeyPair="ntno-challenge-key-pair"
-logGroupName="ntno-challenge-docker-logs"
+logGroupName="ntno-challenge-docker-container"
 
 aws s3 cp $templateName s3://ntno-misc/$templateName --sse
 aws cloudformation validate-template --template-body file://$templateName

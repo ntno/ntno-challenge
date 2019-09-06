@@ -52,6 +52,54 @@ Parameters:
     Type: String
     Description: resource tag for organization
 Resources:
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Ref LogGroupName
+  Ec2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: 'sts:AssumeRole'
+      RoleName: !Sub '${EcrRepoName}-ec2-service-role'
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess      #TODO - restrict me
+      Policies: 
+        - PolicyName: 'Ec2InstancePermissions'
+          PolicyDocument: 
+            Version: 2012-10-17
+            Statement:
+              - Sid: ReadFromEcrRepoPermissions
+                Effect: Allow
+                Action:
+                  - 'ecr:BatchCheckLayerAvailability'
+                  - 'ecr:GetDownloadUrlForLayer'
+                  - 'ecr:GetRepositoryPolicy'
+                  - 'ecr:ListImages'
+                  - 'ecr:DescribeImages'
+                  - 'ecr:BatchGetImage'
+                Resource: 
+                  - !Sub 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${EcrRepoName}'
+              - Sid: EcrLoginPermission
+                Effect: Allow
+                Action:
+                  - 'ecr:GetAuthorizationToken'
+                Resource: '*'
+              - Sid: ReadFromParameterStorePermissions
+                Effect: Allow
+                Action:
+                  - 'ssm:GetParameterHistory'
+                  - 'ssm:GetParametersByPath'
+                  - 'ssm:GetParameters'
+                  - 'ssm:GetParameter'
+                  - 'ssm:DescribeParameters'
+                Resource: '*'                   #TODO - restrict me
   VPC:
     Type: 'AWS::EC2::VPC'
     Properties:
@@ -114,20 +162,22 @@ Resources:
           ToPort: 443
           CidrIp: 0.0.0.0/0                
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
-  EcrAndCloudWatchProfile:
+  Ec2InstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
+      InstanceProfileName: !Sub '${EcrRepoName}-ec2-instance-profile'
       Path: /
       Roles:
-        - 'ecsInstanceRole'
+        - !Ref Ec2InstanceRole
   AmazonLinuxInstance:
     Type: AWS::EC2::Instance
     Properties:
+      DependsOn: !Ref LogGroup
       ImageId:
         !Ref AmazonLinux2Ami
       InstanceInitiatedShutdownBehavior: stop
       InstanceType: t2.nano
-      IamInstanceProfile: !Ref EcrAndCloudWatchProfile
+      IamInstanceProfile: !Ref Ec2InstanceProfile
       KeyName:
         Ref: SSHKeyName
       Monitoring: 'true'
