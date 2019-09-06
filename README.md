@@ -6,14 +6,16 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 **complete:**
 * http web app using nginx and docker
 * force http -> https (locally tested)
+* nginx config tested during build 
 * docker image for generating a self signed certificate and uploading to aws systems manager parameter store
-* integration with aws codecommit and codebuild
+* integration with aws codecommit, codebuild, codedeploy
   * changes to web app are automatically built into an image
-  * docker image is stored in elastic container registry 
-* automated provisioning of the codecommit/codebuild pipeline - see [pipeline.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)
-* optional ssh access (via cloudformation parameter, defaults to no access over port 22)
-* integrate with codedeploy
-
+  * docker image is packaged and stored in s3
+    * docker image is also stored in elastic container registry for easy retrieval
+  * packaged image is deployed to host server
+* automated provisioning of the codecommit/codebuild/codedeploy pipeline - see [pipeline.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)
+* automated provisioning of the host server and associated networking resources - see [deploy-hello-world-app.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/deploy-hello-world-app.yml)
+  * optional ssh access (via cloudformation parameter, defaults to no access over port 22)
 
 **in progress**
  * grab certificate from systems manager parameter store so that cert creation is automated 
