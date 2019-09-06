@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: creates code commit repository and sns trigger topic 
+Description: creates codecommit -> codebuild -> codedeploy pipeline
 Parameters:
   RepoName:
     Type: String
@@ -7,24 +7,23 @@ Parameters:
   RepoDescription:
     Type: String
     Description: repository description
-  ArtifactBucketName:
-    Type: String
-    Description: name of bucket for storing build artifacts
   DomainTag:
     Type: String
     Description: resource tag for organization
   ProjectTag:
     Type: String
     Description: resource tag for organization
+  HostResourceStackName:
+    Type: String
+    Description: name of the stack which provisioned the host resources for ec2 deployment
+  ArtifactBucketName:
+    Type: String
+    Description: name of bucket where pipeline will store artifacts
 Resources:
   TriggerSNS:
     Type: AWS::SNS::Topic
     Properties: 
       DisplayName: !Sub "${RepoName}-SNS"
-      # KmsMasterKeyId: String
-      # Subscription: 
-      #   - Subscription
-      # TopicName: String
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
   CodeRepo:
     Type: AWS::CodeCommit::Repository
@@ -55,15 +54,16 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
             Action: 'sts:AssumeRole'
-      RoleName: !Sub 'codebuild-${RepoName}-service-role'
+      RoleName: !Sub 'codebuild-${RepoName}-service-role-${AWS::StackName}'
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
       Policies: 
         - PolicyName: 'CodeBuildPermissions'
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
-              - Sid: ReadFromArtifactBucket
+              - Sid: ArtifactBucketPermissions
                 Action:
+                  - 's3:PutObject'
                   - 's3:GetObject'
                   - 's3:GetObjectVersion'
                   - 's3:GetBucketAcl'
@@ -78,7 +78,7 @@ Resources:
                   - 'logs:CreateLogGroup'
                   - 'logs:CreateLogStream'
                   - 'logs:PutLogEvents'
-                Resource: '*'
+                Resource: '*'   #TODO - make less permissive
                   # - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RepoName}'
                   # - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RepoName}:*'
               - Sid: PullFromCodeCommitRepoPermission
@@ -110,6 +110,45 @@ Resources:
                   - 'ecr:DescribeRepositories'
                   - 'ecr:GetAuthorizationToken'
                 Resource: '*'
+              - Sid: ReadFromParameterStorePermissions
+                Effect: Allow
+                Action:
+                  - 'ssm:GetParameterHistory'
+                  - 'ssm:GetParametersByPath'
+                  - 'ssm:GetParameters'
+                  - 'ssm:GetParameter'
+                  - 'ssm:DescribeParameters'
+                Resource: '*'                   #TODO - restrict me
+
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codedeploy.amazonaws.com
+            Action: 'sts:AssumeRole'
+      RoleName: !Sub 'codedeploy-${RepoName}-service-role-${AWS::StackName}'
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole'
+      Policies: 
+        - PolicyName: 'CodeDeployPermissions'
+          PolicyDocument: 
+            Version: 2012-10-17
+            Statement:
+              - Sid: ReadArtifactBucketPermissions
+                Action:
+                  - 's3:GetObject'
+                  - 's3:GetObjectVersion'
+                  - 's3:GetBucketAcl'
+                  - 's3:GetBucketLocation'
+                Effect: Allow
+                Resource:
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
   CodePipelineServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -120,22 +159,16 @@ Resources:
             Principal:
               Service: codepipeline.amazonaws.com
             Action: 'sts:AssumeRole'
-      RoleName: !Sub 'codepipeline-${RepoName}-service-role'
+      RoleName: !Sub 'codepipeline-${RepoName}-service-role-${AWS::StackName}'
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole'
+        - 'arn:aws:iam::aws:policy/AWSCodePipelineFullAccess'
       Policies: 
         - PolicyName: 'CodePipelinePermissions'
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
-              # - Sid: AllowRolePassToCloudFormation
-              #   Action:
-              #     - 'iam:PassRole'
-              #   Effect: Allow
-              #   Condition:
-              #     StringEqualsIfExists:
-              #       'iam:PassedToService':
-              #         - cloudformation.amazonaws.com
-              #   Resource: '*'
               - Sid: CodeCommitPermissions
                 Action:
                   - 'codecommit:GetBranch'
@@ -176,12 +209,24 @@ Resources:
                   - 'ecr:DescribeImages'
                 Effect: Allow
                 Resource: '*'
+              - Sid: TroubleshootStar
+                Action: 
+                  - 's3:*'
+                  - 'codedeploy:*'
+                  - 'ec2:*'
+                  - 'autoscaling:*'
+                  - 'cloudwatch:*'
+                  - 'sns:*'
+                  - 'sqs:*'
+                Effect: Allow
+                Resource: '*'
   BuildProject:
     Type: AWS::CodeBuild::Project
     Properties: 
       Artifacts: 
         EncryptionDisabled: False
         Type: CODEPIPELINE
+        Packaging: ZIP
       BadgeEnabled: False
       Description: !Sub 'CodeBuild project for ${RepoName}'
       Environment: 
@@ -221,11 +266,29 @@ Resources:
         Type: CODEPIPELINE
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
       TimeoutInMinutes: 10
+  DeployApplication:
+    Type: AWS::CodeDeploy::Application
+  DeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties: 
+      ApplicationName: !Ref DeployApplication
+      DeploymentStyle: 
+          DeploymentOption: WITHOUT_TRAFFIC_CONTROL
+          DeploymentType: IN_PLACE
+      Ec2TagSet:
+        Ec2TagSetList:
+          - Ec2TagGroup:
+            - Key: 'aws:cloudformation:stack-name'
+              Value: !Ref HostResourceStackName
+              Type: KEY_AND_VALUE
+      ServiceRoleArn: !GetAtt
+        - CodeDeployServiceRole
+        - Arn
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties: 
       ArtifactStore: 
-        Location: !Ref ArtifactBucketName
+        Location: !Sub '${ArtifactBucketName}'
         Type: S3
       Name: !Ref RepoName
       RestartExecutionOnUpdate: True
@@ -233,22 +296,22 @@ Resources:
         - CodePipelineServiceRole
         - Arn
       Stages: 
-        -  Name: FetchSource
-           Actions: 
-              - Name: Source
-                ActionTypeId: 
-                  Category: Source
-                  Owner: AWS
-                  Provider: CodeCommit
-                  Version: '1'
-                Configuration: 
-                  RepositoryName: !Ref RepoName
-                  BranchName: master
-                  PollForSourceChanges: True
-                OutputArtifacts: 
-                  - Name: SourceArtifact
-                Region: !Sub '${AWS::Region}'
-                RunOrder: 1
+        - Name: FetchSource
+          Actions: 
+            - Name: Source
+              ActionTypeId: 
+                Category: Source
+                Owner: AWS
+                Provider: CodeCommit
+                Version: '1'
+              Configuration: 
+                RepositoryName: !Ref RepoName
+                BranchName: master
+                PollForSourceChanges: True
+              OutputArtifacts: 
+                - Name: SourceArtifact
+              Region: !Sub '${AWS::Region}'
+              RunOrder: 1
         - Name: BuildSource
           Actions:
             - Name: Build
@@ -265,91 +328,18 @@ Resources:
                 - Name: BuildArtifact
               Region: !Sub '${AWS::Region}'
               RunOrder: 1
-
-
-
-# - Sid: AllowRolePassToOtherServices -----not sure i get this yet so commenting out
-#   Action:
-#     - 'iam:PassRole'
-#   Effect: Allow
-#   Condition:
-#     StringEqualsIfExists:
-#       'iam:PassedToService':
-#         - cloudformation.amazonaws.com
-#         - elasticbeanstalk.amazonaws.com
-#         - ec2.amazonaws.com
-#         - ecs-tasks.amazonaws.com
-#   Resource: '*'                               
-
-#   - Action:
-#       - 'codedeploy:CreateDeployment'
-#       - 'codedeploy:GetApplication'
-#       - 'codedeploy:GetApplicationRevision'
-#       - 'codedeploy:GetDeployment'
-#       - 'codedeploy:GetDeploymentConfig'
-#       - 'codedeploy:RegisterApplicationRevision'
-#     Resource: '*'
-#     Effect: Allow
-#   - Action:
-#       - 'elasticbeanstalk:*'
-#       - 'ec2:*'
-#       - 'elasticloadbalancing:*'
-#       - 'autoscaling:*'
-#       - 'cloudwatch:*'
-#       - 's3:*'
-#       - 'sns:*'
-#       - 'cloudformation:*'
-#       - 'rds:*'
-#       - 'sqs:*'
-#       - 'ecs:*'
-#     Resource: '*'
-#     Effect: Allow
-#   - Action:
-#       - 'lambda:InvokeFunction'
-#       - 'lambda:ListFunctions'
-#     Resource: '*'
-#     Effect: Allow
-#   - Action:
-#       - 'opsworks:CreateDeployment'
-#       - 'opsworks:DescribeApps'
-#       - 'opsworks:DescribeCommands'
-#       - 'opsworks:DescribeDeployments'
-#       - 'opsworks:DescribeInstances'
-#       - 'opsworks:DescribeStacks'
-#       - 'opsworks:UpdateApp'
-#       - 'opsworks:UpdateStack'
-#     Resource: '*'
-#     Effect: Allow
-#   - Action:
-#       - 'cloudformation:CreateStack'
-#       - 'cloudformation:DeleteStack'
-#       - 'cloudformation:DescribeStacks'
-#       - 'cloudformation:UpdateStack'
-#       - 'cloudformation:CreateChangeSet'
-#       - 'cloudformation:DeleteChangeSet'
-#       - 'cloudformation:DescribeChangeSet'
-#       - 'cloudformation:ExecuteChangeSet'
-#       - 'cloudformation:SetStackPolicy'
-#       - 'cloudformation:ValidateTemplate'
-#     Resource: '*'
-#     Effect: Allow
-#   - Effect: Allow
-#     Action:
-#       - 'devicefarm:ListProjects'
-#       - 'devicefarm:ListDevicePools'
-#       - 'devicefarm:GetRun'
-#       - 'devicefarm:GetUpload'
-#       - 'devicefarm:CreateUpload'
-#       - 'devicefarm:ScheduleRun'
-#     Resource: '*'
-#   - Effect: Allow
-#     Action:
-#       - 'servicecatalog:ListProvisioningArtifacts'
-#       - 'servicecatalog:CreateProvisioningArtifact'
-#       - 'servicecatalog:DescribeProvisioningArtifact'
-#       - 'servicecatalog:DeleteProvisioningArtifact'
-#       - 'servicecatalog:UpdateProduct'
-#     Resource: '*'
-
-# Version: 2012-10-17
-
+        - Name: DeployApp
+          Actions:
+            - Name: Deploy
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CodeDeploy
+                Version: '1'
+              Configuration: 
+                ApplicationName: !Ref DeployApplication
+                DeploymentGroupName: !Ref DeploymentGroup
+              InputArtifacts: 
+                - Name: BuildArtifact
+              Region: !Sub '${AWS::Region}'
+              RunOrder: 1

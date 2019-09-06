@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#debugging
+echo "DEPLOYMENT_GROUP_ID: " $DEPLOYMENT_GROUP_ID
+echo "DEPLOYMENT_ID: " $DEPLOYMENT_ID
+echo "DEPLOYMENT_GROUP_NAME: " $DEPLOYMENT_GROUP_NAME
+echo "APPLICATION_NAME: " $APPLICATION_NAME
+echo "DEPLOYMENT_IMAGE_ID: " $DEPLOYMENT_IMAGE_ID
+
+DEPLOYMENT_IMAGE_ID=$(cat /home/ec2-user/image-name.txt)
+LOG_GROUP_NAME=$(cat /home/ec2-user/log-group-name.txt)
+echo "DEPLOYMENT_IMAGE_ID: " $DEPLOYMENT_IMAGE_ID
+echo "LOG_GROUP_NAME: " $LOG_GROUP_NAME
+
+#start container with open ports 443 and 80
+#send logs to the specified cloudwatch log group
+docker run \
+--log-driver=awslogs --log-opt awslogs-group=$LOG_GROUP_NAME \
+--name $DEPLOYMENT_ID \
+-p 443:443 \
+-p 80:80 \
+-d \
+$DEPLOYMENT_IMAGE_ID

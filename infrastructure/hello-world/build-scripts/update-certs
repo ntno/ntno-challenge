@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#debugging
+echo "overwriting dumm-cert.pem and dummy-key.pem with parameter store values"
+
+#TODO parameterize param names, pass via pipeline cft
+aws ssm get-parameter --name '/hello-world/cert.pem'  --with-decryption --output text --query Parameter.Value > dummy-cert.pem
+aws ssm get-parameter --name '/hello-world/key.pem'  --with-decryption --output text --query Parameter.Value > dummy-key.pem

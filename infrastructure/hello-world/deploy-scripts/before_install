@@ -1,0 +1,7 @@
+#!/bin/bash
+
+#remove previous files if they exist
+sudo rm -rf /home/ec2-user/app.tar.gz
+sudo rm -rf /home/ec2-user/image-name.txt
+sudo rm -rf /home/ec2-user/appspec.yml
+sudo rm -rf /home/ec2-user/deploy-scripts/*

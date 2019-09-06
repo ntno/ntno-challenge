@@ -57,6 +57,8 @@ $ docker run -p 80:80 -p 443:443 -d mysite
 * [blank if false cloudformation syntax](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html)
 
 * [cloudformation conditionals syntax](https://ig.nore.me/2018/02/conditionals-in-cloudformation/)
+* [save image as tar.gz for use in codedeploy](https://www.lewuathe.com/embed-docker-image-in-codedeploy-package.html)
+* []
 
 ### TODOs
 * add test stage to pipeline
@@ -67,6 +69,13 @@ $ docker run -p 80:80 -p 443:443 -d mysite
 * consider movning code commit repo away from pipeline because if that gets deleted then so does the code history
 * investigate how branch builds would work
 ---
+
+log into amazon console and check the pipeline for build results  
+if the web app built successfully then provision the web app using [deploy-hello-world-app.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/deploy-hello-world-app.yml)  
+connect to the ec2 instance via ssh and manually run the bootstrap config (see `UserData`)
+navigate to https://PUBLIC_IPV4_DNS in the browser
+* `./create-app-deploy-stack.sh`  
+
 
 
 

@@ -1,0 +1,17 @@
+#!/bin/bash
+#stop the docker service and remove local-kv.db to avoid 'port in use' errors
+sudo service docker stop
+sudo rm /var/lib/docker/network/files/local-kv.db
+
+#restart docker
+sudo service docker start
+
+#debugging
+echo "DEPLOYMENT_GROUP_ID: " $DEPLOYMENT_GROUP_ID
+echo "DEPLOYMENT_ID: " $DEPLOYMENT_ID
+echo "DEPLOYMENT_GROUP_NAME: " $DEPLOYMENT_GROUP_NAME
+echo "APPLICATION_NAME: " $APPLICATION_NAME
+
+
+
+

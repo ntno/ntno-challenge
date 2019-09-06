@@ -20,7 +20,7 @@
 ######################################################################################
 
 AWSTemplateFormatVersion: 2010-09-09
-Description: deploys the hello-world application to a public subnet in a new VPC
+Description: provisions ec2 instance, public subnet, VPC for app deployment via codedeploy
 Parameters:
   SSHKeyName:
     Description: name of the ec2 key provisioned during prerequisite steps
@@ -42,15 +42,21 @@ Parameters:
   LogGroupName:
     Description: name of the cloud watch log group to send application logs to
     Type: String
-    Default: hello-world-docker
   AmazonLinux2Ami:
     Description: | 
       AMI id for the latest linux 2 ami with extras installed.
       See `aws ssm get-parameter --name "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2" --region us-east-1`
     Type: String
-    Default: 'ami-00c03f7f7f2ec15c3'
+    Default: 'ami-0b69ea66ff7391e80'
     #us-east-1: ami-0b69ea66ff7391e80
     #us-east-2: ami-00c03f7f7f2ec15c3
+  CodeDeployResourceKitBucketName:
+    #https://docs.aws.amazon.com/codedeploy/latest/userguide/resource-kit.html#resource-kit-bucket-names
+    Description: name of bucket which contains install kit for codedeploy
+    Type: String
+    Default: 'aws-codedeploy-us-east-1'
+    #us-east-1: aws-codedeploy-us-east-1
+    #us-east-2: aws-codedeploy-us-east-2
   DomainTag:
     Type: String
     Description: resource tag for organization
@@ -79,36 +85,7 @@ Resources:
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess      #TODO - restrict me
-      Policies: 
-        - PolicyName: 'Ec2InstancePermissions'
-          PolicyDocument: 
-            Version: 2012-10-17
-            Statement:
-              - Sid: ReadFromEcrRepoPermissions
-                Effect: Allow
-                Action:
-                  - 'ecr:BatchCheckLayerAvailability'
-                  - 'ecr:GetDownloadUrlForLayer'
-                  - 'ecr:GetRepositoryPolicy'
-                  - 'ecr:ListImages'
-                  - 'ecr:DescribeImages'
-                  - 'ecr:BatchGetImage'
-                Resource: 
-                  - !Sub 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${EcrRepoName}'
-              - Sid: EcrLoginPermission
-                Effect: Allow
-                Action:
-                  - 'ecr:GetAuthorizationToken'
-                Resource: '*'
-              - Sid: ReadFromParameterStorePermissions
-                Effect: Allow
-                Action:
-                  - 'ssm:GetParameterHistory'
-                  - 'ssm:GetParametersByPath'
-                  - 'ssm:GetParameters'
-                  - 'ssm:GetParameter'
-                  - 'ssm:DescribeParameters'
-                Resource: '*'                   #TODO - restrict me
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess        #TODO - restrict me
   VPC:
     Type: 'AWS::EC2::VPC'
     Properties:
@@ -213,6 +190,29 @@ Resources:
           Content-Type: text/x-shellscript; charset="us-ascii"
           MIME-Version: 1.0
           Content-Transfer-Encoding: 7bit
+          Content-Disposition: attachment; filename="custom-codedeploy-config.txt"
+
+          #!/bin/bash
+          if [ ! -f /home/ec2-user/custom-codedeploy-config.txt ]
+          then
+            cat << EOF > /home/ec2-user/custom-codedeploy-config.txt
+          ---
+          :log_aws_wire: false
+          :log_dir: '/var/log/aws/codedeploy-agent/'
+          :pid_dir: '/opt/codedeploy-agent/state/.pid/'
+          :program_name: codedeploy-agent
+          :root_dir: '/home/ec2-user'
+          :verbose: true
+          :wait_between_runs: 1
+          :proxy_uri:
+          :max_revisions: 5
+          EOF
+          fi
+          --//
+
+          Content-Type: text/x-shellscript; charset="us-ascii"
+          MIME-Version: 1.0
+          Content-Transfer-Encoding: 7bit
           Content-Disposition: attachment; filename="userdata.txt"
 
           #!/bin/bash
@@ -221,7 +221,28 @@ Resources:
           #install required modules
           sudo yum update -y
           sudo yum install -y aws-cfn-bootstrap
+          sudo yum install -y ruby wget 
           sudo amazon-linux-extras install docker
+
+          #install codedeploy agent
+          cd /home/ec2-user
+          wget https://${CodeDeployResourceKitBucketName}.s3.${AWS::Region}.amazonaws.com/latest/install
+          ls
+          sudo ./install auto
+          sudo service codedeploy-agent stop
+
+          #set custom log settings
+          sudo cp /etc/codedeploy-agent/conf/codedeployagent.yml /home/ec2-user/codedeployagent.yml.backup
+          sudo cp /home/ec2-user/custom-codedeploy-config.txt /etc/codedeploy-agent/conf/codedeployagent.yml
+
+          #restart codedeploy agent
+          sudo service codedeploy-agent restart
+            
+          #check the status of the codedeploy agent after restart
+          sudo service codedeploy-agent start
+          sudo service codedeploy-agent status
+
+          #show the current config
 
           #stop the docker service and remove local-kv.db to avoid 'port in use' errors
           sudo service docker stop
@@ -233,20 +254,10 @@ Resources:
           #add 'ec2-user' to the docker group
           sudo usermod -a -G docker ec2-user
 
-          #log into ecr
-          $(aws ecr get-login --no-include-email --region ${AWS::Region})
+          #write log group name to home directory for use during app deployment
+          /bin/echo ${LogGroupName}  >> /home/ec2-user/log-group-name.txt 
+          sudo chmod 400 /home/ec2-user/log-group-name.txt 
 
-          #pull specified image
-          docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
-
-          #start container with open ports 443 and 80
-          #send logs to the specified cloudwatch log group
-          docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} \
-            -p 443:443 \
-            -p 80:80 \
-            -d \
-            ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
-          
           /bin/echo $(date) done >> /tmp/debug.txt
           --//
 

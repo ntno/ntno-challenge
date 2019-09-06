@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#debugging
+echo "DEPLOYMENT_GROUP_ID: " $DEPLOYMENT_GROUP_ID
+echo "DEPLOYMENT_ID: " $DEPLOYMENT_ID
+echo "DEPLOYMENT_GROUP_NAME: " $DEPLOYMENT_GROUP_NAME
+echo "APPLICATION_NAME: " $APPLICATION_NAME
+
+#load the docker image
+ls -ltra 
+docker load -i /home/ec2-user/app.tar.gz 
