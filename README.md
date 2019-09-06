@@ -66,9 +66,11 @@ connect to the ec2 instance via ssh and manually run the bootstrap config (see `
 navigate to https://PUBLIC_IPV4_DNS in the browser
 * `./create-app-deploy-stack.sh`  
 
-### Step 5
-curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com
-curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com
+### Step 5  
+
+example:  
+`curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
+`curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
 ---  
 
 ## Coding
