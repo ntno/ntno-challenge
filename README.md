@@ -25,7 +25,7 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 **todo:**
 * integrate with automated certificate generator like certbot
   * we want to prevent cert from being stored with app code or app image
-* add test stage to pipeline
+* add test stage to pipeline for functional testing (as opposed to configuration syntax checking)
   * python e2e tests on against running container
 * research how to handle branch builds/deploys
 * clean up IAM roles 
