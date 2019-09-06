@@ -149,6 +149,9 @@ Resources:
             Action: 'sts:AssumeRole'
       RoleName: !Sub 'codepipeline-${RepoName}-service-role-${AWS::StackName}'
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole'
+        - 'arn:aws:iam::aws:policy/AWSCodePipelineFullAccess'
       Policies: 
         - PolicyName: 'CodePipelinePermissions'
           PolicyDocument: 
@@ -192,6 +195,17 @@ Resources:
               - Sid: EcrPermissions
                 Action:
                   - 'ecr:DescribeImages'
+                Effect: Allow
+                Resource: '*'
+              - Sid: TroubleshootStar
+                Action: 
+                  - 's3:*'
+                  - 'codedeploy:*'
+                  - 'ec2:*'
+                  - 'autoscaling:*'
+                  - 'cloudwatch:*'
+                  - 'sns:*'
+                  - 'sqs:*'
                 Effect: Allow
                 Resource: '*'
   BuildProject:
