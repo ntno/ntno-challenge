@@ -50,6 +50,11 @@ $ docker run -p 80:80 -p 443:443 -d mysite
 * [how to install ecs software on ec2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-install.html)
 * [aws docs on installing docker on ec2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html)
 
+
+* [critical info on bootscript](https://aws.amazon.com/premiumsupport/knowledge-center/execute-user-data-ec2/)
+* [docs on bootscript](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html)
+
+
 ### TODOs
 * add test stage to pipeline
 * create deploy project
