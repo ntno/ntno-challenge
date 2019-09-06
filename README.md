@@ -12,18 +12,17 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
   * docker image is stored in elastic container registry 
 * automated provisioning of the codecommit/codebuild pipeline - see [pipeline.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)
 * optional ssh access (via cloudformation parameter, defaults to no access over port 22)
+* integrate with codedeploy
 
 
 **in progress**
-* integrate with codedeploy
+ * grab certificate from systems manager parameter store so that cert creation is automated 
+   * ideally this should happen during the deploy / runtime so the certs aren't stored in the image
+   * future enhancements would be to use an automated cert generator like certbot
 
 **todo:**
-  * grab certificate from systems manager parameter store and install during ec2 boot - see bootscript in `deploy-hello-world-app.yml`
 * add test stage to pipeline
 * research how to handle branch builds/deploys/e2e tests
-* break out the creation of the codecommit repo and ecr repo from the pipeline template 
-* research cloudformation signals / wait conditions - should wait for log group to finish before creating instance
-
 
 ## Install
 ### Prerequisites
