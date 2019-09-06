@@ -84,12 +84,13 @@ Resources:
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess      #TODO - restrict me
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess        #TODO - restrict me
       Policies: 
         - PolicyName: 'Ec2InstancePermissions'
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
-              - Sid: ReadFromEcrRepoPermissions
+              - Sid: ReadFromEcrRepoPermissions                 #TODO - remove once codedeploy is integrated
                 Effect: Allow
                 Action:
                   - 'ecr:BatchCheckLayerAvailability'
