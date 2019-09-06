@@ -29,7 +29,7 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 ### Prerequisites
 * create an amazon ec2 key pair and store securely
 * s3 bucket to store cloud formation templates (ex: ntno-misc)
-* aws user with the following permissions 
+* aws user with the following permissions:  
   * add parameters to the systems manager parameter store
   * create/update/delete cloudformation stacks
   * write/read for the cloud formation template bucket
@@ -52,11 +52,11 @@ generate certificate and add to the systems manager parameter store
 provision the codecommit and codebuild pipeline using [pipeline.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)  
 * `cd infrastructure/cloudformation`  
 * `./create-artifact-bucket-stack.sh`  
-* `./create-pipeline-stack.sh  `
+* `./create-pipeline-stack.sh`  
 
 ### Step 3
 connect to codecommit repo following aws instructions  
-copy contents of [hello-world](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/hello-world) to the codecommit repo  
+copy contents of [hello-world](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/hello-world) to the codecommit repo (do not include .git files)  
 push to codecommit  
 
 ### Step 4 - (work around until todos are complete)
