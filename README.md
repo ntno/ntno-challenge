@@ -8,8 +8,11 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 * force http -> https (locally tested)
 * nginx config tested during build 
 * docker image for generating a self signed certificate and uploading to aws systems manager parameter store
+* cert is pulled into final web app image during the build process - **not** stored with the web app code
+  * note - this is still not ideal because the keys are stored in the build artifact and final image (see todos)
 * integration with aws codecommit, codebuild, codedeploy
   * changes to web app are automatically built into an image
+  * build process gets latest certs from systems parameter store
   * docker image is packaged and stored in s3
     * docker image is also stored in elastic container registry for easy retrieval
   * packaged image is deployed to host server
@@ -18,15 +21,17 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
   * optional ssh access (via cloudformation parameter, defaults to no access over port 22)
 
 **in progress**
- * grab certificate from systems manager parameter store so that cert creation is automated 
-   * ideally this should happen during the deploy / runtime so the certs aren't stored in the image
-   * future enhancements would be to use an automated cert generator like certbot
 
 **todo:**
 * integrate with automated certificate generator like certbot
+  * we want to prevent cert from being stored with app code or app image
 * add test stage to pipeline
   * python e2e tests on against running container
 * research how to handle branch builds/deploys
+* clean up IAM roles 
+  * for the purposes of completing this POC quickly I made some of the roles more permissive than I would like them to be
+  * policies should be restricted to only act on pipeline resources
+  * unused policies should be removed
 
 ## Install
 ### Prerequisites
