@@ -208,8 +208,8 @@ Resources:
           :max_revisions: 5
           EOF
           fi
-          --//
 
+          --//
           Content-Type: text/x-shellscript; charset="us-ascii"
           MIME-Version: 1.0
           Content-Transfer-Encoding: 7bit
@@ -222,12 +222,13 @@ Resources:
           sudo yum update -y
           sudo yum install -y aws-cfn-bootstrap
           sudo yum install -y ruby wget 
-          sudo amazon-linux-extras install docker
+          sudo amazon-linux-extras install -y docker
 
           #install codedeploy agent
           cd /home/ec2-user
           wget https://${CodeDeployResourceKitBucketName}.s3.${AWS::Region}.amazonaws.com/latest/install
           ls
+          chmod +x install
           sudo ./install auto
           sudo service codedeploy-agent stop
 
@@ -239,7 +240,6 @@ Resources:
           sudo service codedeploy-agent restart
             
           #check the status of the codedeploy agent after restart
-          sudo service codedeploy-agent start
           sudo service codedeploy-agent status
 
           #show the current config
