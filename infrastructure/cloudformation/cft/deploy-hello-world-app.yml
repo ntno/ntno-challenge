@@ -261,8 +261,11 @@ Resources:
           sudo service codedeploy-agent stop
 
           #set custom log settings
-          cp /etc/codedeploy-agent/conf/codedeployagent.yml /home/ec2-user/codedeployagent.yml.backup
-          cp /home/ec2-user/custom-codedeploy-config.txt /etc/codedeploy-agent/conf/codedeployagent.yml
+          sudo cp /etc/codedeploy-agent/conf/codedeployagent.yml /home/ec2-user/codedeployagent.yml.backup
+          sudo cp /home/ec2-user/custom-codedeploy-config.txt /etc/codedeploy-agent/conf/codedeployagent.yml
+
+          #restart codedeploy agent
+          sudo service codedeploy-agent restart
             
           #check the status of the codedeploy agent after restart
           sudo service codedeploy-agent start
