@@ -69,8 +69,10 @@ navigate to https://PUBLIC_IPV4_DNS in the browser
 ### Step 5  
 
 example:  
-`curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
-`curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
+* `curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
+* `curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
+
+---  
 ---  
 
 ## Coding
@@ -82,3 +84,4 @@ see [code](https://github.com/ntno/ntno-challenge/blob/master/code/validate.py) 
 
 
 ---
+---  
