@@ -79,7 +79,7 @@ Resources:
                   - 'logs:CreateLogGroup'
                   - 'logs:CreateLogStream'
                   - 'logs:PutLogEvents'
-                Resource: '*'
+                Resource: '*'   #TODO - make less permissive
                   # - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RepoName}'
                   # - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RepoName}:*'
               - Sid: PullFromCodeCommitRepoPermission
@@ -183,6 +183,7 @@ Resources:
       Artifacts: 
         EncryptionDisabled: False
         Type: CODEPIPELINE
+        Packaging: ZIP
       BadgeEnabled: False
       Description: !Sub 'CodeBuild project for ${RepoName}'
       Environment: 
