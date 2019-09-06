@@ -255,10 +255,10 @@ Resources:
       ApplicationName: !Ref DeployApplication
       AutoRollbackConfiguration: 
         Enabled: False
-      Deployment:
-        IgnoreApplicationStopFailures: True 
-        Revision:
-          RevisionType: S3
+      # Deployment:
+      #   IgnoreApplicationStopFailures: True 
+      #   Revision:
+      #     RevisionType: S3
           # S3Location:
             # Bucket: String
             # BundleType: Zip
@@ -311,7 +311,7 @@ Resources:
     Type: AWS::CodePipeline::Pipeline
     Properties: 
       ArtifactStore: 
-        Location: !Ref ArtifactBucketName
+        Location: !Sub '${ArtifactBucketName}'
         Type: S3
       Name: !Ref RepoName
       RestartExecutionOnUpdate: True
@@ -351,20 +351,20 @@ Resources:
                 - Name: BuildArtifact
               Region: !Sub '${AWS::Region}'
               RunOrder: 1
-        - Name: DeployApp
-          Actions:
-            - Name: Deploy
-              ActionTypeId:
-                  Category: Deploy
-                  Owner: AWS
-                  Provider: CodeBuild
-                  Version: '1'
-              Configuration:
-                ApplicationName: !Ref DeployApplication
-              InputArtifacts:
-                - Name: BuildArtifact
-              Region: !Sub '${AWS::Region}'
-              RunOrder: 1
+        # - Name: DeployApp
+        #   Actions:
+        #     - Name: Deploy
+        #       ActionTypeId:
+        #           Category: Deploy
+        #           Owner: AWS
+        #           Provider: CodeBuild
+        #           Version: '1'
+        #       Configuration:
+        #         ApplicationName: !Ref DeployApplication
+        #       InputArtifacts:
+        #         - Name: BuildArtifact
+        #       Region: !Sub '${AWS::Region}'
+        #       RunOrder: 1
 
 
 
