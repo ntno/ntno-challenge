@@ -51,6 +51,11 @@ Parameters:
     Default: 'ami-00c03f7f7f2ec15c3'
     #us-east-1: ami-0b69ea66ff7391e80
     #us-east-2: ami-00c03f7f7f2ec15c3
+  CodeDeployResourceKitBucketName:
+    #https://docs.aws.amazon.com/codedeploy/latest/userguide/resource-kit.html#resource-kit-bucket-names
+    Description: name of bucket which contains install kit for codedeploy
+    Type: String
+    Default: 'aws-codedeploy-us-east-2'
   DomainTag:
     Type: String
     Description: resource tag for organization
@@ -221,7 +226,17 @@ Resources:
           #install required modules
           sudo yum update -y
           sudo yum install -y aws-cfn-bootstrap
+          sudo yum install -y ruby wget 
           sudo amazon-linux-extras install docker
+
+          #install codedeploy agent
+          cd /home/ec2-user
+          wget https://${CodeDeployResourceKitBucketName}.s3.${AWS::Region}.amazonaws.com/latest/install
+          ls
+          sudo ./install auto
+
+          #check the status of the codedeploy agent
+          sudo service codedeploy-agent status
 
           #stop the docker service and remove local-kv.db to avoid 'port in use' errors
           sudo service docker stop
@@ -233,19 +248,19 @@ Resources:
           #add 'ec2-user' to the docker group
           sudo usermod -a -G docker ec2-user
 
-          #log into ecr
-          $(aws ecr get-login --no-include-email --region ${AWS::Region})
+          # #log into ecr
+          # $(aws ecr get-login --no-include-email --region ${AWS::Region})
 
-          #pull specified image
-          docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
+          # #pull specified image
+          # docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
 
-          #start container with open ports 443 and 80
-          #send logs to the specified cloudwatch log group
-          docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} \
-            -p 443:443 \
-            -p 80:80 \
-            -d \
-            ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
+          # #start container with open ports 443 and 80
+          # #send logs to the specified cloudwatch log group
+          # docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} \
+          #   -p 443:443 \
+          #   -p 80:80 \
+          #   -d \
+          #   ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
           
           /bin/echo $(date) done >> /tmp/debug.txt
           --//
