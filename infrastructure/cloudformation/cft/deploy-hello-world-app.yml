@@ -1,4 +1,4 @@
-# Adapted from 
+# security groups / vpc / routing configs adpated from Phil Chen
 # Copyright [2018] [Phil Chen]
 # https://github.com/getcft/aws-elb-to-ec2-target-group-cf-template/blob/master/elb-to-ec2-target-group-cf-template.yml
 
@@ -25,7 +25,8 @@ Parameters:
   SSHKeyName:
     Description: name of the ec2 key provisioned during prerequisite steps
     Type: 'AWS::EC2::KeyPair::KeyName'
-  AllowSSHFlag:
+    Default: ""
+  AllowSSH:
     Description: Do you want to open port 22 for ssh? (yes/no)
     Type: String
     Default: "no"
@@ -58,7 +59,7 @@ Parameters:
     Description: resource tag for organization
   
 Conditions:
-  NeedsSSH: !Equals [ !Ref AllowSSHFlag, "yes" ]
+  NeedsSSH: !Equals [ !Ref AllowSSH, "yes" ]
 Resources:
   LogGroup:
     Type: AWS::Logs::LogGroup
@@ -154,7 +155,7 @@ Resources:
   EC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !If [NeedsSSH, 'ssh and ports 80/443', 'ports 80 and 443' ] 
+      GroupDescription: !If [NeedsSSH, 'open: ssh (22) and ports 80/443', 'open: ports 80 and 443' ] 
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -182,8 +183,7 @@ Resources:
       InstanceInitiatedShutdownBehavior: stop
       InstanceType: t2.nano
       IamInstanceProfile: !Ref Ec2InstanceProfile
-      KeyName:
-        Ref: SSHKeyName
+      KeyName: !If [NeedsSSH, !Ref SSHKeyName, !Ref "AWS::NoValue" ]
       Monitoring: 'true'
       NetworkInterfaces:
       - AssociatePublicIpAddress: 'true'
@@ -251,9 +251,11 @@ Resources:
           --//
 
 Outputs:
-  VPC:
-    Description: 'Virtual Private Cloud'
-    Value: !Ref VPC
   EC2Instance:
     Description: 'EC2 Instance'
     Value: !Ref AmazonLinuxInstance
+  PublicDns:
+    Description: 'publically available address for the web app'
+    Value: !GetAtt 
+      - AmazonLinuxInstance
+      - PublicDnsName
