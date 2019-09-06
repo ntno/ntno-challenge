@@ -21,6 +21,10 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
   * optional ssh access (via cloudformation parameter, defaults to no access over port 22)
 
 **in progress**
+* clean up IAM roles 
+  * for the purposes of completing this POC quickly I made some of the roles more permissive than I would like them to be
+  * policies should be restricted to only act on pipeline resources
+  * unused policies should be removed
 
 **todo:**
 * integrate with automated certificate generator like certbot
@@ -28,10 +32,6 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 * add test stage to pipeline for functional testing (as opposed to configuration syntax checking)
   * python e2e tests on against running container
 * research how to handle branch builds/deploys
-* clean up IAM roles 
-  * for the purposes of completing this POC quickly I made some of the roles more permissive than I would like them to be
-  * policies should be restricted to only act on pipeline resources
-  * unused policies should be removed
 
 ## Install
 ### Prerequisites
@@ -57,10 +57,11 @@ generate certificate and add to the systems manager parameter store
    --no-cache`   
 
 ### Step 2
-provision the codecommit and codebuild pipeline using [pipeline.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)  
-* `cd infrastructure/cloudformation`  
-* `./create-artifact-bucket-stack.sh`  
-* `./create-pipeline-stack.sh`  
+* provision bucket for storing pipeline artifacts using [artifact-bucket.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)
+* provision resources required for app hosting using [deploy-hello-world-app.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)
+* provision the codecommit->codebuild->codedeploy pipeline using [pipeline.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)  
+
+*see [create.sh](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/create.sh) for notes on parameter values*
 
 ### Step 3
 connect to codecommit repo following aws instructions  
@@ -68,12 +69,19 @@ copy contents of [hello-world](https://github.com/ntno/ntno-challenge/tree/maste
 push to codecommit  
 
 ### Step 4 
-
+wait for pipeline to complete
 
 ### Step 5  
+visit the public dns of the hosted app
 
-* curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com
-* curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com
+region=$(aws configure get region)
+publicDns=$(aws cloudformation describe-stacks --stack-name app-hosting --query "Stacks[0].Outputs[?OutputKey=='PublicDns'].OutputValue" --output text)
+
+<!-- * curl https://$publicDns.$region.compute.amazonaws.com
+* curl -k https://$publicDns.$region.compute.amazonaws.com -->
+* `curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
+* `curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
+
 ---  
 
 ## Coding
