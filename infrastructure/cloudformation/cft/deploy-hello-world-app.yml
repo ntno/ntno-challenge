@@ -42,20 +42,21 @@ Parameters:
   LogGroupName:
     Description: name of the cloud watch log group to send application logs to
     Type: String
-    Default: hello-world-docker
   AmazonLinux2Ami:
     Description: | 
       AMI id for the latest linux 2 ami with extras installed.
       See `aws ssm get-parameter --name "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2" --region us-east-1`
     Type: String
-    Default: 'ami-00c03f7f7f2ec15c3'
+    Default: 'ami-0b69ea66ff7391e80'
     #us-east-1: ami-0b69ea66ff7391e80
     #us-east-2: ami-00c03f7f7f2ec15c3
   CodeDeployResourceKitBucketName:
     #https://docs.aws.amazon.com/codedeploy/latest/userguide/resource-kit.html#resource-kit-bucket-names
     Description: name of bucket which contains install kit for codedeploy
     Type: String
-    Default: 'aws-codedeploy-us-east-2'
+    Default: 'aws-codedeploy-us-east-1'
+    #us-east-1: aws-codedeploy-us-east-1
+    #us-east-2: aws-codedeploy-us-east-2
   DomainTag:
     Type: String
     Description: resource tag for organization

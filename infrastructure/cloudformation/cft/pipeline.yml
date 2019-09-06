@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: creates code commit repository and sns trigger topic 
+Description: creates codecommit -> codebuild -> codedeploy pipeline
 Parameters:
   RepoName:
     Type: String
@@ -16,7 +16,9 @@ Parameters:
   HostResourceStackName:
     Type: String
     Description: name of the stack which provisioned the host resources for ec2 deployment
-    Default: 'ntno-challenge-app-deploy'
+  ArtifactBucketName:
+    Type: String
+    Description: name of bucket where pipeline will store artifacts
 Resources:
   TriggerSNS:
     Type: AWS::SNS::Topic
@@ -68,8 +70,8 @@ Resources:
                   - 's3:GetBucketLocation'
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2'
-                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2/*'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
               - Sid: CreateLogsPermission
                 Effect: Allow
                 Action:
@@ -145,8 +147,8 @@ Resources:
                   - 's3:GetBucketLocation'
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2'
-                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2/*'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
   CodePipelineServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -187,8 +189,8 @@ Resources:
                   - 's3:GetBucketLocation'
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2'
-                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2/*'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
               - Sid: CloudformationPermissions
                 Action:
                   - 'cloudformation:ValidateTemplate'
@@ -286,7 +288,7 @@ Resources:
     Type: AWS::CodePipeline::Pipeline
     Properties: 
       ArtifactStore: 
-        Location: 'ntno-code-pipeline-artifacts-us-east-2'
+        Location: !Sub '${ArtifactBucketName}'
         Type: S3
       Name: !Ref RepoName
       RestartExecutionOnUpdate: True
