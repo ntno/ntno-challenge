@@ -283,20 +283,10 @@ Resources:
           #add 'ec2-user' to the docker group
           sudo usermod -a -G docker ec2-user
 
-          # #log into ecr
-          # $(aws ecr get-login --no-include-email --region ${AWS::Region})
+          #write log group name to home directory for use during app deployment
+          /bin/echo ${LogGroupName}  >> /home/ec2-user/log-group-name.txt 
+          sudo chmod 400 /home/ec2-user/log-group-name.txt 
 
-          # #pull specified image
-          # docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
-
-          # #start container with open ports 443 and 80
-          # #send logs to the specified cloudwatch log group
-          # docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} \
-          #   -p 443:443 \
-          #   -p 80:80 \
-          #   -d \
-          #   ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
-          
           /bin/echo $(date) done >> /tmp/debug.txt
           --//
 
