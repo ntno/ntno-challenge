@@ -43,7 +43,7 @@
 * docker
 * awscli
 * aws user with codecommit permissions and credentials (can be separate or the same as the first user)
-* update the [cloudformation helper scripts](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/) with your custom parameters (bucket name, ec2 key pair name, etc.)  
+* update the [cloudformation helper script](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/create.sh) with your custom parameters (bucket name, ec2 key pair name, etc.)  
 
 ### Step 1 
 generate certificate and add to the systems manager parameter store
