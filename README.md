@@ -11,24 +11,19 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
   * changes to web app are automatically built into an image
   * docker image is stored in elastic container registry 
 * automated provisioning of the codecommit/codebuild pipeline - see [pipeline.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)
-  
+* optional ssh access (via cloudformation parameter, defaults to no access over port 22)
+
 
 **in progress**
-* troubleshoot the automatic provisioning of the web app deployment - see [deploy-hello-world-app.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/deploy-hello-world-app.yml)
-* clean up deploy template
-  * create profile for the ec2 instance
-    * needs create log access
-    * needs ecr pull access
-  * add ec2 instance profile
-  * create log group 
+* integrate the deploy template with codedeploy
 
 **todo:**
-* integrate the deploy template with codedeploy
   * grab certificate from systems manager parameter store and install during ec2 boot - see bootscript in `deploy-hello-world-app.yml`
 * add test stage to pipeline
 * research how to handle branch builds/deploys/e2e tests
 * break out the creation of the codecommit repo and ecr repo from the pipeline template 
-* remove ssh access
+* research cloudformation signals / wait conditions - should wait for log group to finish before creating instance
+
 
 ## Install
 ### Prerequisites
@@ -71,7 +66,9 @@ connect to the ec2 instance via ssh and manually run the bootstrap config (see `
 navigate to https://PUBLIC_IPV4_DNS in the browser
 * `./create-app-deploy-stack.sh`  
 
-
+### Step 5
+curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com
+curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com
 ---  
 
 ## Coding

@@ -54,6 +54,9 @@ $ docker run -p 80:80 -p 443:443 -d mysite
 * [critical info on bootscript](https://aws.amazon.com/premiumsupport/knowledge-center/execute-user-data-ec2/)
 * [docs on bootscript](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html)
 
+* [blank if false cloudformation syntax](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html)
+
+* [cloudformation conditionals syntax](https://ig.nore.me/2018/02/conditionals-in-cloudformation/)
 
 ### TODOs
 * add test stage to pipeline
