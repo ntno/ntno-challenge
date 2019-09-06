@@ -1,7 +1,6 @@
 # ntno-challenge
 
 ## Infrastructure
-see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastructure) for solution (in progress)
 
 **complete:**
 * http web app using nginx and docker
