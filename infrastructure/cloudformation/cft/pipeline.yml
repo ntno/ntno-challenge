@@ -7,9 +7,6 @@ Parameters:
   RepoDescription:
     Type: String
     Description: repository description
-  ArtifactBucketName:
-    Type: String
-    Description: name of bucket for storing build artifacts
   DomainTag:
     Type: String
     Description: resource tag for organization
@@ -71,8 +68,8 @@ Resources:
                   - 's3:GetBucketLocation'
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
-                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
+                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2'
+                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2/*'
               - Sid: CreateLogsPermission
                 Effect: Allow
                 Action:
@@ -138,8 +135,8 @@ Resources:
                   - 's3:GetBucketLocation'
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
-                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
+                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2'
+                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2/*'
   CodePipelineServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -177,8 +174,8 @@ Resources:
                   - 's3:GetBucketLocation'
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
-                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
+                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2'
+                  - !Sub 'arn:aws:s3:::ntno-code-pipeline-artifacts-us-east-2/*'
               - Sid: CloudformationPermissions
                 Action:
                   - 'cloudformation:ValidateTemplate'
@@ -265,7 +262,7 @@ Resources:
     Type: AWS::CodePipeline::Pipeline
     Properties: 
       ArtifactStore: 
-        Location: !Ref ArtifactBucketName
+        Location: 'ntno-code-pipeline-artifacts-us-east-2'
         Type: S3
       Name: !Ref RepoName
       RestartExecutionOnUpdate: True
@@ -273,22 +270,22 @@ Resources:
         - CodePipelineServiceRole
         - Arn
       Stages: 
-        -  Name: FetchSource
-           Actions: 
-              - Name: Source
-                ActionTypeId: 
-                  Category: Source
-                  Owner: AWS
-                  Provider: CodeCommit
-                  Version: '1'
-                Configuration: 
-                  RepositoryName: !Ref RepoName
-                  BranchName: master
-                  PollForSourceChanges: True
-                OutputArtifacts: 
-                  - Name: SourceArtifact
-                Region: !Sub '${AWS::Region}'
-                RunOrder: 1
+        - Name: FetchSource
+          Actions: 
+            - Name: Source
+              ActionTypeId: 
+                Category: Source
+                Owner: AWS
+                Provider: CodeCommit
+                Version: '1'
+              Configuration: 
+                RepositoryName: !Ref RepoName
+                BranchName: master
+                PollForSourceChanges: True
+              OutputArtifacts: 
+                - Name: SourceArtifact
+              Region: !Sub '${AWS::Region}'
+              RunOrder: 1
         - Name: BuildSource
           Actions:
             - Name: Build
@@ -317,6 +314,6 @@ Resources:
                 ApplicationName: !Ref DeployApplication
                 DeploymentGroupName: !Ref DeploymentGroup
               InputArtifacts: 
-                - Name: BuildArtifct
+                - Name: BuildArtifact
               Region: !Sub '${AWS::Region}'
               RunOrder: 1
