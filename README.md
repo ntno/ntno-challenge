@@ -65,9 +65,10 @@ docker build generate-certificate \
 *see [create.sh](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/create.sh) for notes on parameter values*
 
 ### Step 3
-connect to codecommit repo following aws instructions  
-copy contents of [hello-world](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/hello-world) to the codecommit repo (do not include .git files)  
-push to codecommit  
+* connect to codecommit repo following aws instructions  
+* copy contents of [hello-world](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/hello-world) to the codecommit repo 
+  * (do not include .git files)  
+* push to codecommit  
 
 ### Step 4 
 wait for pipeline to complete
