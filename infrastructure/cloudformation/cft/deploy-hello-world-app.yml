@@ -1,4 +1,5 @@
-# Original template, Copyright [2018] [Phil Chen]
+# Adapted from 
+# Copyright [2018] [Phil Chen]
 # https://github.com/getcft/aws-elb-to-ec2-target-group-cf-template/blob/master/elb-to-ec2-target-group-cf-template.yml
 
 # Modified template by ntno
@@ -19,12 +20,9 @@
 ######################################################################################
 
 AWSTemplateFormatVersion: 2010-09-09
-Description: >
-    deploys the hello-world application to a public subnet in a new VPC
-    accessible via application load balancer
-
-
+Description: deploys the hello-world application to a public subnet in a new VPC
 Parameters:
+<<<<<<< HEAD
 
     SSHKeyName:
         Description: name of the ec2 key provisioned during prerequisite steps
@@ -60,358 +58,154 @@ Mappings:
             PubSubnetZoneA: "10.0.10.0/24"
             # PubSubnetZoneB: "10.0.30.0/24"
 
+=======
+  SSHKeyName:
+    Description: name of the ec2 key provisioned during prerequisite steps
+    Type: 'AWS::EC2::KeyPair::KeyName'
+  EcrRepoName:
+    Description: name of the ECR repository which contains the application
+    Type: String
+    Default: hello-world
+  ImageTag: 
+    Description: ECR repository tag for the application image 
+    Type: String
+    Default: latest
+  LogGroupName:
+    Description: name of the cloud watch log group to send application logs to
+    Type: String
+    Default: hello-world-docker
+  AmazonLinux2Ami:
+    Description: | 
+      AMI id for the latest linux 2 ami with extras installed.
+      See `aws ssm get-parameter --name "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2" --region us-east-1`
+    Type: String
+    Default: 'ami-00c03f7f7f2ec15c3'
+    #us-east-1: ami-0b69ea66ff7391e80
+    #us-east-2: ami-00c03f7f7f2ec15c3
+  DomainTag:
+    Type: String
+    Description: resource tag for organization
+  ProjectTag:
+    Type: String
+    Description: resource tag for organization
+>>>>>>> master
 Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+        CidrBlock: !Sub '10.0.0.0/16'
+        EnableDnsSupport: true
+        EnableDnsHostnames: true
+        InstanceTenancy: 'default'
+        Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+  PubSubnetZoneA:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select ['0', !GetAZs '']
+      CidrBlock: '10.0.10.0/24'
+      MapPublicIpOnLaunch: True
+      VpcId: !Ref VPC
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  RouteTablePubZoneA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  RoutePubZoneA:
+    DependsOn:
+        - InternetGateway
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTablePubZoneA
+  RouteAssociationPubSubnetZoneA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+        SubnetId: !Ref PubSubnetZoneA
+        RouteTableId: !Ref RouteTablePubZoneA
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'SSH and Ports 80/443'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0                
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+  EcrAndCloudWatchProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - 'ecsInstanceRole'
+  AmazonLinuxInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId:
+        !Ref AmazonLinux2Ami
+      InstanceInitiatedShutdownBehavior: stop
+      InstanceType: t2.nano
+      IamInstanceProfile: !Ref EcrAndCloudWatchProfile
+      KeyName:
+        Ref: SSHKeyName
+      Monitoring: 'true'
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: 'true'
+        DeviceIndex: '0'
+        GroupSet:
+        - !Ref EC2SecurityGroup
+        SubnetId:
+          Ref: PubSubnetZoneA
+      Tenancy: default
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          sudo yum update -y
+          sudo yum install -y aws-cfn-bootstrap
+          sudo amazon-linux-extras install docker
+          #start the docker daemon
+          sudo service docker start
+          #add 'ec2-user' to the docker group
+          sudo usermod -a -G docker ec2-user
+          # log in to ecr
+          $(aws ecr get-login --no-include-email --region ${AWS::Region})
+          # pull latest image
+          docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
+          # start container
+          docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} -p 443:443 -p 80:80 -d ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
+          # signal cloud formation that boot has completed   
+          /opt/aws/bin/cfn-signal \
+              -e $? \
+              --stack ${AWS::StackName} \
+              --resource AmazonLinuxInstance \
+              --region ${AWS::Region}
 
-    # VPC
-    VPC:
-        Type: 'AWS::EC2::VPC'
-        Properties:
-            CidrBlock:
-                'Fn::Join': [ '/', [ '10.0.0.0', '16' ] ]
-            EnableDnsSupport: true
-            EnableDnsHostnames: true
-            InstanceTenancy: 'default'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      Ref: 'AWS::StackName'
-
-    # Internet accessible subnet in the first availability zone
-    PubSubnetZoneA:
-        Type: 'AWS::EC2::Subnet'
-        Properties:
-            AvailabilityZone:
-                Fn::Select:
-                - '0'
-                - Fn::GetAZs:
-                    Ref: 'AWS::Region'
-            CidrBlock:
-                Fn::FindInMap:
-                - NetworkToSubnet
-                - '10.0.0.0'
-                - PubSubnetZoneA
-            MapPublicIpOnLaunch: 'True'
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Public', 'Zone A', !Ref 'AWS::StackName' ] ]
-
-
-    # # Internet accessible subnet in the second availability zone
-    # PubSubnetZoneB:
-    #     Type: 'AWS::EC2::Subnet'
-    #     Properties:
-    #         AvailabilityZone:
-    #             Fn::Select:
-    #             - '1'
-    #             - Fn::GetAZs:
-    #                 Ref: 'AWS::Region'
-    #         CidrBlock:
-    #             Fn::FindInMap:
-    #             - NetworkToSubnet
-    #             - '10.0.0.0'
-    #             - PubSubnetZoneB
-    #         MapPublicIpOnLaunch: 'True'
-    #         VpcId:
-    #             Ref: 'VPC'
-    #         Tags:
-    #             - Key: 'Name'
-    #               Value:
-    #                   'Fn::Join': [ ':', [ 'Public', 'Zone B', !Ref 'AWS::StackName' ] ]
-
-    # Gateway to the internet
-    InternetGateway:
-        Type: 'AWS::EC2::InternetGateway'
-        Properties:
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      Ref: 'AWS::StackName'
-
-    # Associate the gateway to the VPC
-    GatewayAttachment:
-        Type: AWS::EC2::VPCGatewayAttachment
-        Properties:
-            InternetGatewayId:
-                Ref: 'InternetGateway'
-            VpcId:
-                Ref: 'VPC'
-
-    # Routing table for the public subnet in availability zone A
-    RouteTablePubZoneA:
-        Type: AWS::EC2::RouteTable
-        Properties:
-            VpcId:
-                Ref: 'VPC'
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Public', 'Zone A', !Ref 'AWS::StackName' ] ]
-
-    # # Routing table for the public subnet in availability zone B
-    # RouteTablePubZoneB:
-    #     Type: AWS::EC2::RouteTable
-    #     Properties:
-    #         VpcId:
-    #             Ref: 'VPC'
-    #         Tags:
-    #             - Key: 'Name'
-    #               Value:
-    #                   'Fn::Join': [ ':', [ 'Public', 'Zone B', !Ref 'AWS::StackName' ] ]
-
-    # Route traffic through the internet gateway
-    RoutePubZoneA:
-        DependsOn:
-            - InternetGateway
-        Type: AWS::EC2::Route
-        Properties:
-            DestinationCidrBlock: '0.0.0.0/0'
-            GatewayId:
-                Ref: 'InternetGateway'
-            RouteTableId:
-                Ref: 'RouteTablePubZoneA'
-
-    # # Route traffic through the internet gateway
-    # RoutePubZoneB:
-    #     DependsOn:
-    #         - InternetGateway
-    #     Type: AWS::EC2::Route
-    #     Properties:
-    #         DestinationCidrBlock: 0.0.0.0/0
-    #         GatewayId:
-    #             Ref: 'InternetGateway'
-    #         RouteTableId:
-    #             Ref: 'RouteTablePubZoneB'
-
-    # Associate public subnet to its routing table
-    RouteAssociationPubSubnetZoneA:
-        Type: AWS::EC2::SubnetRouteTableAssociation
-        Properties:
-            SubnetId:
-                Ref: 'PubSubnetZoneA'
-            RouteTableId:
-                Ref: 'RouteTablePubZoneA'
-
-    # # Associate public subnet to its routing table
-    # RouteAssociationPubSubnetZoneB:
-    #     Type: AWS::EC2::SubnetRouteTableAssociation
-    #     Properties:
-    #         SubnetId:
-    #             Ref: 'PubSubnetZoneB'
-    #         RouteTableId:
-    #             Ref: 'RouteTablePubZoneB'
-
-    # EC2 Security Group Allowing Port 22, 80, 443 from anywhere
-    EC2SecurityGroup:
-        Type: AWS::EC2::SecurityGroup
-        Properties:
-            GroupDescription: 'SSH and Ports 80/443'
-            VpcId:
-              Ref: VPC
-            SecurityGroupIngress:
-              - IpProtocol: tcp
-                FromPort: 80
-                ToPort: 80
-                CidrIp: 0.0.0.0/0
-              - IpProtocol: tcp
-                FromPort: 22
-                ToPort: 22
-                CidrIp: 0.0.0.0/0
-              - IpProtocol: tcp
-                FromPort: 443
-                ToPort: 443
-                CidrIp: 0.0.0.0/0                
-
-
-    # # ELB Security Group allowing Port 80 and 443 from anywhere
-    # ELBSecurityGroup:
-    #     Type: AWS::EC2::SecurityGroup
-    #     Properties:
-    #         GroupDescription: 'SSH and Ports 80/443'
-    #         VpcId:
-    #           Ref: VPC
-    #         SecurityGroupIngress:
-    #             - IpProtocol: tcp
-    #               FromPort: 80
-    #               ToPort: 80
-    #               CidrIp: 0.0.0.0/0
-    #             - IpProtocol: tcp
-    #               FromPort: 443
-    #               ToPort: 443
-    #               CidrIp: 0.0.0.0/0
-
-    EcrAndCloudWatchProfile:
-      Type: 'AWS::IAM::InstanceProfile'
-      Properties:
-        Path: /
-        Roles:
-          - 'ecsInstanceRole'
-
-    # Linux Instance with docker running nginx webapp on port 80/443
-    AmazonLinuxInstance:
-      Type: AWS::EC2::Instance
-      Properties:
-        ImageId:
-          Fn::FindInMap:
-            - RegionToAmazonAMI
-            - Ref: 'AWS::Region'
-            - HVM64
-        InstanceInitiatedShutdownBehavior: stop
-        InstanceType: t2.nano
-        IamInstanceProfile: !Ref EcrAndCloudWatchProfile
-        KeyName:
-          Ref: SSHKeyName
-        Monitoring: 'true'
-        NetworkInterfaces:
-        - AssociatePublicIpAddress: 'true'
-          DeviceIndex: '0'
-          GroupSet:
-          - !Ref EC2SecurityGroup
-          SubnetId:
-            Ref: PubSubnetZoneA
-        Tenancy: default
-        UserData:
-          Fn::Base64: !Sub |
-            #!/bin/bash -xe
-            sudo yum update -y
-            sudo yum install -y aws-cfn-bootstrap
-            sudo amazon-linux-extras install docker
-            #start the docker daemon
-            sudo service docker start
-            #add 'ec2-user' to the docker group
-            sudo usermod -a -G docker ec2-user
-            # log in to ecr
-            $(aws ecr get-login --no-include-email --region ${AWS::Region})
-            # pull latest image
-            docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
-            # start container
-            docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} -p 443:443 -p 80:80 -d ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
-            # signal cloud formation that boot has completed   
-            /opt/aws/bin/cfn-signal \
-                -e $? \
-                --stack ${AWS::StackName} \
-                --resource AmazonLinuxInstance \
-                --region ${AWS::Region}
-
-    # # Target Group
-    # EC2TargetGroup:
-    #   Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    #   Properties:
-    #     HealthCheckEnabled: True
-    #     HealthCheckIntervalSeconds: 30
-    #     HealthCheckPath: /
-    #     HealthCheckPort: 443
-    #     HealthCheckProtocol: HTTPS
-    #     HealthCheckTimeoutSeconds: 15
-    #     HealthyThresholdCount: 5
-    #     Matcher:
-    #       HttpCode: '200'
-    #     Name: EC2TargetGroup
-    #     Port: 80
-    #     Protocol: HTTP
-    #     TargetGroupAttributes:
-    #     - Key: deregistration_delay.timeout_seconds
-    #       Value: '20'
-    #     Targets:
-    #     - Id:
-    #         Ref: AmazonLinuxInstance
-    #       Port: 80
-    #     UnhealthyThresholdCount: 3
-    #     VpcId:
-    #       Ref: 'VPC'
-    #     Tags:
-    #     - Key: Name
-    #       Value: EC2TargetGroup
-    #     - Key: Port
-    #       Value: 80
-
-    # #ELB (ALB)
-    # ALBListenerForHTTP:
-    #   Type: AWS::ElasticLoadBalancingV2::Listener
-    #   Properties:
-    #     DefaultActions:
-    #       - Type: redirect
-    #         RedirectConfig:
-    #             Protocol: HTTPS
-    #             Port: 443
-    #             Host: '#{host}'
-    #             Path: '/#{path}'
-    #             Query: '#{query}'
-    #             StatusCode: 'HTTP_301'
-    #     LoadBalancerArn:
-    #         Ref: ApplicationLoadBalancer
-    #     Port: 80
-    #     Protocol: HTTP
-
-    # SelfSignedCertificate:
-    #     Type: AWS::ElasticLoadBalancingV2::ListenerCertificate
-    #     Properties: 
-    #       Certificates: 
-    #         - arn:aws:iam::281517792612:server-certificate/ExampleCertificate
-    #       ListenerArn: !Ref  ALBListenerForHTTPS
-        
-
-#           Type: AWS::ElasticLoadBalancingV2::ListenerCertificate
-# Properties: 
-#   Certificates: 
-#     - Certificate
-#   ListenerArn: String
-
-
-    # ALBListenerForHTTPS:
-    #   Type: AWS::ElasticLoadBalancingV2::Listener
-    #   Properties:
-    #      Certificates: 
-    #         - 
-    #            Certificates: 
-    #             - arn:aws:iam::281517792612:server-certificate/ExampleCertificate
-    #           ListenerArn: !Ref ALBListenerForHTTPS
-    #      DefaultActions: 
-    #         - 
-    #           Type: forward
-    #           TargetGroupArn: !Ref  EC2TargetGroup
-    #      LoadBalancerArn:
-    #           Ref: ApplicationLoadBalancer
-    #      Port: 443
-    #      Protocol: HTTPS
-    #      SslPolicy: String
-
-    
-    # ApplicationLoadBalancer:
-    #   Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    #   Properties:
-    #     Scheme: internet-facing # or internal
-    #     Subnets:
-    #     - Ref: PubSubnetZoneA
-    #     - Ref: PubSubnetZoneB
-    #     SecurityGroups:
-    #     - Ref: ELBSecurityGroup
-
+ 
+#done
 Outputs:
-
-    VPC:
-        Description: 'Virtual Private Cloud'
-        Value:
-          Ref: 'VPC'
-    # ALBHostName:
-    #     Description: 'Application Load Balancer Hostname'
-    #     Value:
-    #       !GetAtt ApplicationLoadBalancer.DNSName
-    EC2Instance:
-        Description: 'EC2 Instance'
-        Value:
-          Ref: AmazonLinuxInstance
-    # EC2TargetGroup:
-    #     Description: 'EC2 Target Group'
-    #     Value:
-    #       Ref: EC2TargetGroup
-    # ApplicationLoadBalancer:
-    #     Description: 'Application Load Balancer'
-    #     Value:
-    #       Ref: ApplicationLoadBalancer
-    # SelfSignedCertificate: 
-    #   Description: 'certificate resource for ALB.  attach this'
-    #   Value:
-    #     Ref: SelfSignedCertificate
+  VPC:
+    Description: 'Virtual Private Cloud'
+    Value: !Ref VPC
+  EC2Instance:
+    Description: 'EC2 Instance'
+    Value: !Ref AmazonLinuxInstance

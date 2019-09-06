@@ -1,49 +1,37 @@
 # ntno-challenge
 
 ## Infrastructure
-### Problem
-* static web application
-* AWS
-* secure
-  * http redirects to https
-  * self signed cert ok
-* automated testing of infrastructure
-* scripts only (no manual config)
-
-
-### Solution
-see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastructure) for partial solution
+see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastructure) for solution (in progress)
 
 **complete:**
 * http web app using nginx and docker
-* integration with codecommit
-* integration with codebuild 
-  * changes to web app are automatically built
+* force http -> https (locally tested)
+* docker image for generating a self signed certificate and uploading to aws systems manager parameter store
+* integration with aws codecommit and codebuild
+  * changes to web app are automatically built into an image
   * docker image is stored in elastic container registry 
-* creation of source->build pipeline done via [cloudformation template](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/pipeline.yml)
-* [researched](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/notes/reference.md):
-  * how to deploy docker applications with elastic container service (ecs)
-  * how to redirect http traffic to https with nginx
-  * how to automate certificate installation with bootstrap script or with the secure parameter store service
-* cloud formation template to deploy nginx web app on ec2 with associated application load balancer
+* automated provisioning of the codecommit/codebuild pipeline - see [pipeline.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)
+  
 
 **in progress**
-* clean up deploy template (don't need all the resources that were in the example)
-  * create role for the ec2 instance
+* troubleshoot the automatic provisioning of the web app deployment - see [deploy-hello-world-app.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/deploy-hello-world-app.yml)
+* clean up deploy template
+  * create profile for the ec2 instance
     * needs create log access
     * needs ecr pull access
   * add ec2 instance profile
   * create log group 
-* finish https web app implementation 
 
 **todo:**
-* add 'deploy' step to pipeline via codedeploy
+* integrate the deploy template with codedeploy
+  * grab certificate from systems manager parameter store and install during ec2 boot - see bootscript in `deploy-hello-world-app.yml`
 * add test stage to pipeline
 * research how to handle branch builds/deploys/e2e tests
+* break out the creation of the codecommit repo and ecr repo from the pipeline template 
+* remove ssh access
 
-
-### Install
-#### Prerequisites
+## Install
+### Prerequisites
 * create an amazon ec2 key pair and store securely
 * s3 bucket to store cloud formation templates (ex: ntno-misc)
 * aws user with the following permissions 
@@ -52,8 +40,10 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
   * write/read for the cloud formation template bucket
 * docker
 * awscli
+* aws user with codecommit permissions and credentials (can be separate or the same as the first user)
+* update the [cloudformation helper scripts](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/) with your custom parameters (bucket name, ec2 key pair name, etc.)  
 
-#### Step 1 
+### Step 1 
 generate certificate and add to the systems manager parameter store
 
 `docker build generate-certificate \
@@ -61,14 +51,28 @@ generate certificate and add to the systems manager parameter store
    --build-arg AWS_ACCESS_KEY_ID="$(aws configure get aws_access_key_id)" \
    --build-arg AWS_SECRET_ACCESS_KEY="$(aws configure get aws_secret_access_key)" \
    --build-arg AWS_REGION="$(aws configure get region)" \
-   --no-cache` 
+   --no-cache`   
 
-#### Step 2
-#### Step 3
-#### Step 4
+### Step 2
+provision the codecommit and codebuild pipeline using [pipeline.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)  
+* `cd infrastructure/cloudformation`  
+* `./create-artifact-bucket-stack.sh`  
+* `./create-pipeline-stack.sh  `
+
+### Step 3
+connect to codecommit repo following aws instructions  
+copy contents of [hello-world](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/hello-world) to the codecommit repo  
+push to codecommit  
+
+### Step 4 - (work around until todos are complete)
+log into amazon console and check the pipeline for build results  
+if the web app built successfully then provision the web app using [deploy-hello-world-app.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/deploy-hello-world-app.yml)  
+connect to the ec2 instance via ssh and manually run the bootstrap config (see `UserData`)
+navigate to https://PUBLIC_IPV4_DNS in the browser
+* `./create-app-deploy-stack.sh`  
 
 
-
+---  
 
 ## Coding
 ### Problem
