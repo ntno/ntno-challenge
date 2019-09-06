@@ -304,7 +304,9 @@ Resources:
             - Key: 'aws:cloudformation:stack-name'
               Value: !Ref HostResourceStackName
               Type: KEY_AND_VALUE
-      ServiceRoleArn: !Ref CodeDeployServiceRole
+      ServiceRoleArn: !GetAtt
+        - CodeDeployServiceRole
+        - Arn
       # TriggerConfigurations: 
       #   - TriggerConfig
 
