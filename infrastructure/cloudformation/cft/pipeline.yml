@@ -19,16 +19,12 @@ Parameters:
   HostResourceStackName:
     Type: String
     Description: name of the stack which provisioned the host resources for ec2 deployment
-    Default: 'deploy-hello-world-app'
+    Default: 'ntno-challenge-app-deploy'
 Resources:
   TriggerSNS:
     Type: AWS::SNS::Topic
     Properties: 
       DisplayName: !Sub "${RepoName}-SNS"
-      # KmsMasterKeyId: String
-      # Subscription: 
-      #   - Subscription
-      # TopicName: String
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
   CodeRepo:
     Type: AWS::CodeCommit::Repository
@@ -161,15 +157,6 @@ Resources:
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
-              # - Sid: AllowRolePassToCloudFormation
-              #   Action:
-              #     - 'iam:PassRole'
-              #   Effect: Allow
-              #   Condition:
-              #     StringEqualsIfExists:
-              #       'iam:PassedToService':
-              #         - cloudformation.amazonaws.com
-              #   Resource: '*'
               - Sid: CodeCommitPermissions
                 Action:
                   - 'codecommit:GetBranch'
@@ -268,6 +255,16 @@ Resources:
       ApplicationName: !Ref DeployApplication
       AutoRollbackConfiguration: 
         Enabled: False
+      Deployment:
+        IgnoreApplicationStopFailures: True 
+        Revision:
+          RevisionType: S3
+          # S3Location:
+            # Bucket: String
+            # BundleType: Zip
+            # ETag: String
+            # Key: String
+            # Version: String
       # Deployment: 
       #   Description: 'not sure'
       #   IgnoreApplicationStopFailures: True 
@@ -351,6 +348,20 @@ Resources:
               InputArtifacts:
                 - Name: SourceArtifact
               OutputArtifacts: 
+                - Name: BuildArtifact
+              Region: !Sub '${AWS::Region}'
+              RunOrder: 1
+        - Name: DeployApp
+          Actions:
+            - Name: Deploy
+              ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: '1'
+              Configuration:
+                ApplicationName: !Ref DeployApplication
+              InputArtifacts:
                 - Name: BuildArtifact
               Region: !Sub '${AWS::Region}'
               RunOrder: 1

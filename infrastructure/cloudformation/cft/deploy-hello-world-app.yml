@@ -238,7 +238,7 @@ Resources:
           EOF
           fi
           --//
-          
+
           Content-Type: text/x-shellscript; charset="us-ascii"
           MIME-Version: 1.0
           Content-Transfer-Encoding: 7bit
@@ -258,12 +258,14 @@ Resources:
           wget https://${CodeDeployResourceKitBucketName}.s3.${AWS::Region}.amazonaws.com/latest/install
           ls
           sudo ./install auto
+          sudo service codedeploy-agent stop
 
           #set custom log settings
           cp /etc/codedeploy-agent/conf/codedeployagent.yml /home/ec2-user/codedeployagent.yml.backup
           cp /home/ec2-user/custom-codedeploy-config.txt /etc/codedeploy-agent/conf/codedeployagent.yml
             
-          #check the status of the codedeploy agent
+          #check the status of the codedeploy agent after restart
+          sudo service codedeploy-agent start
           sudo service codedeploy-agent status
 
           #show the current config
