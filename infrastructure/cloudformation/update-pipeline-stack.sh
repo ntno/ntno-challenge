@@ -7,7 +7,7 @@ repoName="hello-world"
 repoDescription="serves static site securely"
 artifactBucketName=$NTNO_CHALLENGE_ARTIFACT_BUCKET_NAME        #see create-artifact-bucket-stack.sh
 
-aws s3 cp pipeline.yml s3://ntno-misc/$templateName --sse
+aws s3 cp $templateName s3://ntno-misc/$templateName --sse
 aws cloudformation validate-template --template-body file://$templateName
 aws cloudformation update-stack --template-url https://ntno-misc.s3.amazonaws.com/$templateName \
                     --capabilities CAPABILITY_NAMED_IAM \
