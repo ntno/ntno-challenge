@@ -14,13 +14,7 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
   
 
 **in progress**
-* troubleshoot the automatic provisioning of the web app deployment - see [deploy-hello-world-app.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/deploy-hello-world-app.yml)
-* clean up deploy template
-  * create profile for the ec2 instance
-    * needs create log access
-    * needs ecr pull access
-  * add ec2 instance profile
-  * create log group 
+* remove ssh access (/make optional)
 
 **todo:**
 * integrate the deploy template with codedeploy
@@ -28,7 +22,8 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 * add test stage to pipeline
 * research how to handle branch builds/deploys/e2e tests
 * break out the creation of the codecommit repo and ecr repo from the pipeline template 
-* remove ssh access
+* research cloudformation signals / wait conditions - should wait for log group to finish before creating instance
+
 
 ## Install
 ### Prerequisites

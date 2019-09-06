@@ -25,6 +25,11 @@ Parameters:
   SSHKeyName:
     Description: name of the ec2 key provisioned during prerequisite steps
     Type: 'AWS::EC2::KeyPair::KeyName'
+  # AllowSSHFlag:
+  #   Description: Do you want to open port 22 for ssh? (yes/no)
+  #   Type: String
+  #   Default: no
+  #   AllowedValues: ["yes", "no"]
   EcrRepoName:
     Description: name of the ECR repository which contains the application
     Type: String
@@ -51,11 +56,13 @@ Parameters:
   ProjectTag:
     Type: String
     Description: resource tag for organization
+  
+
 Resources:
   LogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
-      LogGroupName: !Sub '${LogGroupName}-${AWS::StackName}'
+      LogGroupName: !Ref LogGroupName
   Ec2InstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -172,7 +179,6 @@ Resources:
   AmazonLinuxInstance:
     Type: AWS::EC2::Instance
     Properties:
-      DependsOn: !Ref LogGroup
       ImageId:
         !Ref AmazonLinux2Ami
       InstanceInitiatedShutdownBehavior: stop
@@ -251,13 +257,6 @@ Resources:
             ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
           
           /bin/echo $(date) done >> /tmp/debug.txt
-
-          #signal cloudformation that the bootscript has finished
-          /opt/aws/bin/cfn-signal \
-              -e $? \
-              --stack ${AWS::StackName} \
-              --resource AmazonLinuxInstance \
-              --region ${AWS::Region}
           --//
 
 Outputs:
