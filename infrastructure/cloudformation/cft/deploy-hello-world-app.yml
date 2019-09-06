@@ -22,43 +22,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: deploys the hello-world application to a public subnet in a new VPC
 Parameters:
-<<<<<<< HEAD
-
-    SSHKeyName:
-        Description: name of the ec2 key provisioned during prerequisite steps
-        Type: 'AWS::EC2::KeyPair::KeyName'
-
-    EcrRepoName:
-        Description: name of the ECR repository which contains the application
-        Type: String
-    
-    ImageTag: 
-        Description: ECR repository tag for the application image 
-        Type: String
-    
-    LogGroupName:
-        Description: name of the cloud watch log group to send application logs to
-        Type: String
-
-Mappings:
-    #aws ssm get-parameter --name "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2" --region us-east-1
-    #amazon linux 2 AMI (must include extras or the boot script will not work)
-    RegionToAmazonAMI:
-        us-east-1:
-            HVM64: ami-0b69ea66ff7391e80
-        us-east-2:
-            HVM64: ami-00c03f7f7f2ec15c3
-        us-west-1:
-            HVM64: ami-0245d318c6788de52
-        us-west-2:
-            HVM64: ami-04b762b4289fba92b
-
-    NetworkToSubnet:
-        "10.0.0.0":
-            PubSubnetZoneA: "10.0.10.0/24"
-            # PubSubnetZoneB: "10.0.30.0/24"
-
-=======
   SSHKeyName:
     Description: name of the ec2 key provisioned during prerequisite steps
     Type: 'AWS::EC2::KeyPair::KeyName'
@@ -88,7 +51,6 @@ Mappings:
   ProjectTag:
     Type: String
     Description: resource tag for organization
->>>>>>> master
 Resources:
   VPC:
     Type: 'AWS::EC2::VPC'
@@ -179,29 +141,75 @@ Resources:
       Tenancy: default
       UserData:
         Fn::Base64: !Sub |
-          #!/bin/bash -xe
+          Content-Type: multipart/mixed; boundary="//"
+          MIME-Version: 1.0
+
+          --//
+          Content-Type: text/cloud-config; charset="us-ascii"
+          MIME-Version: 1.0
+          Content-Transfer-Encoding: 7bit
+          Content-Disposition: attachment; filename="cloud-config.txt"
+
+          #cloud-config ----- very important!  set to 'always' to run at every ec2 restart
+          cloud_final_modules:
+          - [scripts-user, always]
+
+          output:
+              init:
+                  output: "> /var/log/cloud-init.out"
+                  error: "> /var/log/cloud-init.err"
+              config: "tee -a /var/log/cloud-config.log"
+              final:
+                  - ">> /var/log/cloud-final.out"
+                  - "/var/log/cloud-final.err"
+          --//
+          Content-Type: text/x-shellscript; charset="us-ascii"
+          MIME-Version: 1.0
+          Content-Transfer-Encoding: 7bit
+          Content-Disposition: attachment; filename="userdata.txt"
+
+          #!/bin/bash
+          /bin/echo $(date) start >> /tmp/debug.txt
+
+          #install required modules
           sudo yum update -y
           sudo yum install -y aws-cfn-bootstrap
           sudo amazon-linux-extras install docker
-          #start the docker daemon
+
+          #stop the docker service and remove local-kv.db to avoid 'port in use' errors
+          sudo service docker stop
+          sudo rm /var/lib/docker/network/files/local-kv.db
+
+          #restart docker
           sudo service docker start
+
           #add 'ec2-user' to the docker group
           sudo usermod -a -G docker ec2-user
-          # log in to ecr
+
+          #log into ecr
           $(aws ecr get-login --no-include-email --region ${AWS::Region})
-          # pull latest image
+
+          #pull specified image
           docker pull ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
-          # start container
-          docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} -p 443:443 -p 80:80 -d ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
-          # signal cloud formation that boot has completed   
+
+          #start container with open ports 443 and 80
+          #send logs to the specified cloudwatch log group
+          docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} \
+            -p 443:443 \
+            -p 80:80 \
+            -d \
+            ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
+          
+          /bin/echo $(date) done >> /tmp/debug.txt
+
+          #signal cloudformation that the bootscript has finished
           /opt/aws/bin/cfn-signal \
               -e $? \
               --stack ${AWS::StackName} \
               --resource AmazonLinuxInstance \
               --region ${AWS::Region}
+          --//
 
- 
-#done
 Outputs:
   VPC:
     Description: 'Virtual Private Cloud'
