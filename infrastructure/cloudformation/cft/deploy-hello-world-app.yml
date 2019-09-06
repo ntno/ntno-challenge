@@ -219,6 +219,28 @@ Resources:
           Content-Type: text/x-shellscript; charset="us-ascii"
           MIME-Version: 1.0
           Content-Transfer-Encoding: 7bit
+          Content-Disposition: attachment; filename="custom-codedeploy-config.txt"
+
+          #!/bin/bash
+          if [ ! -f /home/ec2-user/custom-codedeploy-config.txt ]
+          then
+            cat << EOF > /home/ec2-user/custom-codedeploy-config.txt
+          ---
+          :log_aws_wire: false
+          :log_dir: '/var/log/aws/codedeploy-agent/'
+          :pid_dir: '/opt/codedeploy-agent/state/.pid/'
+          :program_name: codedeploy-agent
+          :root_dir: '/opt/codedeploy-agent/deployment-root'
+          :verbose: false
+          :wait_between_runs: 1
+          :proxy_uri:
+          :max_revisions: 5
+          EOF
+          fi
+          --//
+          Content-Type: text/x-shellscript; charset="us-ascii"
+          MIME-Version: 1.0
+          Content-Transfer-Encoding: 7bit
           Content-Disposition: attachment; filename="userdata.txt"
 
           #!/bin/bash
@@ -236,8 +258,14 @@ Resources:
           ls
           sudo ./install auto
 
+          #set custom log settings
+          cp /etc/codedeploy-agent/conf/codedeployagent.yml /home/ec2-user/codedeployagent.yml.backup
+          cp /home/ec2-user/custom-codedeploy-config.txt /etc/codedeploy-agent/conf/codedeployagent.yml
+            
           #check the status of the codedeploy agent
           sudo service codedeploy-agent status
+
+          #show the current config
 
           #stop the docker service and remove local-kv.db to avoid 'port in use' errors
           sudo service docker stop
