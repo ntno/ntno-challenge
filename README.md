@@ -82,7 +82,14 @@ publicDns=$(aws cloudformation describe-stacks --stack-name app-hosting --query 
 * `curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
 * `curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
 
----  
+=======
+### Step 5  
+
+example:  
+* `curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
+* `curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
+
+
 
 ## Coding
 ### Problem
@@ -93,3 +100,4 @@ see [code](https://github.com/ntno/ntno-challenge/blob/master/code/validate.py) 
 
 
 ---
+---  
