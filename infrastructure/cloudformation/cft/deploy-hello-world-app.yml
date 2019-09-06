@@ -20,7 +20,7 @@
 ######################################################################################
 
 AWSTemplateFormatVersion: 2010-09-09
-Description: deploys the hello-world application to a public subnet in a new VPC
+Description: provisions ec2 instance, public subnet, VPC for app deployment via codedeploy
 Parameters:
   SSHKeyName:
     Description: name of the ec2 key provisioned during prerequisite steps
