@@ -1,16 +1,15 @@
 version: 0.0
 os: linux
 files:
-  - source: .\    #copy folder contents
+  - source: /
     destination: /home/ec2-user/
-
 hooks:
   BeforeInstall:
     - location: deploy-scripts/install_dependencies
       timeout: 300
       runas: ec2-user
   AfterInstall:
-    - location: deploy-scripts/check_install
+    - location: deploy-scripts/after_install
       timeout: 300
       runas: ec2-user
   ApplicationStart:
