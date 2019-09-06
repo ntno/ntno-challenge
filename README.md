@@ -77,8 +77,6 @@ visit the public dns of the hosted app
 region=$(aws configure get region)
 publicDns=$(aws cloudformation describe-stacks --stack-name app-hosting --query "Stacks[0].Outputs[?OutputKey=='PublicDns'].OutputValue" --output text)
 
-<!-- * curl https://$publicDns.$region.compute.amazonaws.com
-* curl -k https://$publicDns.$region.compute.amazonaws.com -->
 * `curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
 * `curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
 
