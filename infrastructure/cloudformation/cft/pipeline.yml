@@ -245,53 +245,10 @@ Resources:
       TimeoutInMinutes: 10
   DeployApplication:
     Type: AWS::CodeDeploy::Application
-    # Properties: 
-    #   ApplicationName: !Ref RepoName
-    #   ComputePlatform: Server
   DeploymentGroup:
-    # DependsOn: !Ref DeployApplication
     Type: AWS::CodeDeploy::DeploymentGroup
     Properties: 
       ApplicationName: !Ref DeployApplication
-      AutoRollbackConfiguration: 
-        Enabled: False
-      # Deployment:
-      #   IgnoreApplicationStopFailures: True 
-      #   Revision:
-      #     RevisionType: S3
-          # S3Location:
-            # Bucket: String
-            # BundleType: Zip
-            # ETag: String
-            # Key: String
-            # Version: String
-      # Deployment: 
-      #   Description: 'not sure'
-      #   IgnoreApplicationStopFailures: True 
-      #   Revision: 
-      #     RevisionType: S3
-      #     S3Location: 
-
-
-        # "Deployment":{
-        #   "Description":"First time",
-        #   "IgnoreApplicationStopFailures":"true",
-        #   "Revision":{
-        #     "RevisionType":"S3",
-        #     "S3Location":{
-        #       "Bucket":{
-        #         "Ref":"Bucket"
-        #       },
-        #       "BundleType":"Zip",
-        #       "Key":{
-        #         "Ref":"Key"
-        #       }
-        #     }
-        #   }
-        # },
-
-      # DeploymentConfigName: String
-      # DeploymentGroupName: String
       DeploymentStyle: 
           DeploymentOption: WITHOUT_TRAFFIC_CONTROL
           DeploymentType: IN_PLACE
@@ -304,14 +261,11 @@ Resources:
       ServiceRoleArn: !GetAtt
         - CodeDeployServiceRole
         - Arn
-      # TriggerConfigurations: 
-      #   - TriggerConfig
-
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties: 
       ArtifactStore: 
-        Location: !Sub '${ArtifactBucketName}'
+        Location: !Ref ArtifactBucketName
         Type: S3
       Name: !Ref RepoName
       RestartExecutionOnUpdate: True
@@ -351,105 +305,18 @@ Resources:
                 - Name: BuildArtifact
               Region: !Sub '${AWS::Region}'
               RunOrder: 1
-        # - Name: DeployApp
-        #   Actions:
-        #     - Name: Deploy
-        #       ActionTypeId:
-        #           Category: Deploy
-        #           Owner: AWS
-        #           Provider: CodeBuild
-        #           Version: '1'
-        #       Configuration:
-        #         ApplicationName: !Ref DeployApplication
-        #       InputArtifacts:
-        #         - Name: BuildArtifact
-        #       Region: !Sub '${AWS::Region}'
-        #       RunOrder: 1
-
-
-
-# - Sid: AllowRolePassToOtherServices -----not sure i get this yet so commenting out
-#   Action:
-#     - 'iam:PassRole'
-#   Effect: Allow
-#   Condition:
-#     StringEqualsIfExists:
-#       'iam:PassedToService':
-#         - cloudformation.amazonaws.com
-#         - elasticbeanstalk.amazonaws.com
-#         - ec2.amazonaws.com
-#         - ecs-tasks.amazonaws.com
-#   Resource: '*'                               
-
-#   - Action:
-#       - 'codedeploy:CreateDeployment'
-#       - 'codedeploy:GetApplication'
-#       - 'codedeploy:GetApplicationRevision'
-#       - 'codedeploy:GetDeployment'
-#       - 'codedeploy:GetDeploymentConfig'
-#       - 'codedeploy:RegisterApplicationRevision'
-#     Resource: '*'
-#     Effect: Allow
-#   - Action:
-#       - 'elasticbeanstalk:*'
-#       - 'ec2:*'
-#       - 'elasticloadbalancing:*'
-#       - 'autoscaling:*'
-#       - 'cloudwatch:*'
-#       - 's3:*'
-#       - 'sns:*'
-#       - 'cloudformation:*'
-#       - 'rds:*'
-#       - 'sqs:*'
-#       - 'ecs:*'
-#     Resource: '*'
-#     Effect: Allow
-#   - Action:
-#       - 'lambda:InvokeFunction'
-#       - 'lambda:ListFunctions'
-#     Resource: '*'
-#     Effect: Allow
-#   - Action:
-#       - 'opsworks:CreateDeployment'
-#       - 'opsworks:DescribeApps'
-#       - 'opsworks:DescribeCommands'
-#       - 'opsworks:DescribeDeployments'
-#       - 'opsworks:DescribeInstances'
-#       - 'opsworks:DescribeStacks'
-#       - 'opsworks:UpdateApp'
-#       - 'opsworks:UpdateStack'
-#     Resource: '*'
-#     Effect: Allow
-#   - Action:
-#       - 'cloudformation:CreateStack'
-#       - 'cloudformation:DeleteStack'
-#       - 'cloudformation:DescribeStacks'
-#       - 'cloudformation:UpdateStack'
-#       - 'cloudformation:CreateChangeSet'
-#       - 'cloudformation:DeleteChangeSet'
-#       - 'cloudformation:DescribeChangeSet'
-#       - 'cloudformation:ExecuteChangeSet'
-#       - 'cloudformation:SetStackPolicy'
-#       - 'cloudformation:ValidateTemplate'
-#     Resource: '*'
-#     Effect: Allow
-#   - Effect: Allow
-#     Action:
-#       - 'devicefarm:ListProjects'
-#       - 'devicefarm:ListDevicePools'
-#       - 'devicefarm:GetRun'
-#       - 'devicefarm:GetUpload'
-#       - 'devicefarm:CreateUpload'
-#       - 'devicefarm:ScheduleRun'
-#     Resource: '*'
-#   - Effect: Allow
-#     Action:
-#       - 'servicecatalog:ListProvisioningArtifacts'
-#       - 'servicecatalog:CreateProvisioningArtifact'
-#       - 'servicecatalog:DescribeProvisioningArtifact'
-#       - 'servicecatalog:DeleteProvisioningArtifact'
-#       - 'servicecatalog:UpdateProduct'
-#     Resource: '*'
-
-# Version: 2012-10-17
-
+        - Name: DeployApp
+          Actions:
+            - Name: Deploy
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CodeDeploy
+                Version: '1'
+              Configuration: 
+                ApplicationName: !Ref DeployApplication
+                DeploymentGroupName: !Ref DeploymentGroup
+              InputArtifacts: 
+                - Name: BuildArtifct
+              Region: !Sub '${AWS::Region}'
+              RunOrder: 1
