@@ -85,27 +85,6 @@ Resources:
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess      #TODO - restrict me
         - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess        #TODO - restrict me
-      Policies: 
-        - PolicyName: 'Ec2InstancePermissions'
-          PolicyDocument: 
-            Version: 2012-10-17
-            Statement:
-              - Sid: ReadFromEcrRepoPermissions                 #TODO - remove once codedeploy is integrated
-                Effect: Allow
-                Action:
-                  - 'ecr:BatchCheckLayerAvailability'
-                  - 'ecr:GetDownloadUrlForLayer'
-                  - 'ecr:GetRepositoryPolicy'
-                  - 'ecr:ListImages'
-                  - 'ecr:DescribeImages'
-                  - 'ecr:BatchGetImage'
-                Resource: 
-                  - !Sub 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${EcrRepoName}'
-              - Sid: EcrLoginPermission
-                Effect: Allow
-                Action:
-                  - 'ecr:GetAuthorizationToken'
-                Resource: '*'
   VPC:
     Type: 'AWS::EC2::VPC'
     Properties:
@@ -217,7 +196,7 @@ Resources:
           then
             cat << EOF > /home/ec2-user/custom-codedeploy-config.txt
           ---
-          :log_aws_wire: true
+          :log_aws_wire: false
           :log_dir: '/var/log/aws/codedeploy-agent/'
           :pid_dir: '/opt/codedeploy-agent/state/.pid/'
           :program_name: codedeploy-agent
