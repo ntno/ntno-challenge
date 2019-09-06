@@ -49,12 +49,14 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 ### Step 1 
 generate certificate and add to the systems manager parameter store
 
-`docker build generate-certificate \
+`
+docker build generate-certificate \
    -t generate-certificate \
    --build-arg AWS_ACCESS_KEY_ID="$(aws configure get aws_access_key_id)" \
    --build-arg AWS_SECRET_ACCESS_KEY="$(aws configure get aws_secret_access_key)" \
    --build-arg AWS_REGION="$(aws configure get region)" \
-   --no-cache`   
+   --no-cache
+`
 
 ### Step 2
 * provision bucket for storing pipeline artifacts using [artifact-bucket.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)
@@ -74,20 +76,14 @@ wait for pipeline to complete
 ### Step 5  
 visit the public dns of the hosted app
 
-region=$(aws configure get region)
-publicDns=$(aws cloudformation describe-stacks --stack-name app-hosting --query "Stacks[0].Outputs[?OutputKey=='PublicDns'].OutputValue" --output text)
+`region=$(aws configure get region)`
+`publicDns=$(aws cloudformation describe-stacks --stack-name app-hosting --query "Stacks[0].Outputs[?OutputKey=='PublicDns'].OutputValue" --output text)`
 
 * `curl https://$publicDns.$region.compute.amazonaws.com`  
 * `curl -k https://$publicDns.$region.compute.amazonaws.com`  
 
-=======
-### Step 5  
-
-example:  
-* `curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
-* `curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com`  
-
-
+---
+---
 
 ## Coding
 ### Problem
