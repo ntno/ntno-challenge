@@ -25,11 +25,11 @@ Parameters:
   SSHKeyName:
     Description: name of the ec2 key provisioned during prerequisite steps
     Type: 'AWS::EC2::KeyPair::KeyName'
-  # AllowSSHFlag:
-  #   Description: Do you want to open port 22 for ssh? (yes/no)
-  #   Type: String
-  #   Default: no
-  #   AllowedValues: ["yes", "no"]
+  AllowSSHFlag:
+    Description: Do you want to open port 22 for ssh? (yes/no)
+    Type: String
+    Default: "no"
+    AllowedValues: ["yes", "no"]
   EcrRepoName:
     Description: name of the ECR repository which contains the application
     Type: String
@@ -57,7 +57,8 @@ Parameters:
     Type: String
     Description: resource tag for organization
   
-
+Conditions:
+  NeedsSSH: !Equals [ !Ref AllowSSHFlag, "yes" ]
 Resources:
   LogGroup:
     Type: AWS::Logs::LogGroup
@@ -153,7 +154,7 @@ Resources:
   EC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: 'SSH and Ports 80/443'
+      GroupDescription: !If [NeedsSSH, 'ssh and ports 80/443', 'ports 80 and 443' ] 
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -161,13 +162,10 @@ Resources:
           ToPort: 80
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          CidrIp: 0.0.0.0/0                
+          CidrIp: 0.0.0.0/0  
+        - !If [NeedsSSH, { IpProtocol: 'tcp', FromPort: 22, ToPort: 22, CidrIp: 0.0.0.0/0 }, !Ref "AWS::NoValue" ]
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
   Ec2InstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
@@ -210,14 +208,7 @@ Resources:
           cloud_final_modules:
           - [scripts-user, always]
 
-          output:
-              init:
-                  output: "> /var/log/cloud-init.out"
-                  error: "> /var/log/cloud-init.err"
-              config: "tee -a /var/log/cloud-config.log"
-              final:
-                  - ">> /var/log/cloud-final.out"
-                  - "/var/log/cloud-final.err"
+          output : { all : '| tee -a /var/log/cloud-init-output.log' }
           --//
           Content-Type: text/x-shellscript; charset="us-ascii"
           MIME-Version: 1.0
