@@ -255,8 +255,8 @@ Resources:
           sudo usermod -a -G docker ec2-user
 
           #write log group name to home directory for use during app deployment
-          /bin/echo ${LogGroupName}  >> /home/ec2-user/log-group-name.txt 
-          sudo chmod 400 /home/ec2-user/log-group-name.txt 
+          /bin/echo ${LogGroupName} > /home/ec2-user/log-group-name.txt 
+          chmod a+r /home/ec2-user/log-group-name.txt 
 
           /bin/echo $(date) done >> /tmp/debug.txt
           --//
