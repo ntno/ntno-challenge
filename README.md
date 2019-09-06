@@ -78,8 +78,10 @@ visit the public dns of the hosted app
 
 * `region=$(aws configure get region)`  
 * `publicDns=$(aws cloudformation describe-stacks --stack-name app-hosting --query "Stacks[0].Outputs[?OutputKey=='PublicDns'].OutputValue" --output text)`  
-* `curl https://$publicDns.$region.compute.amazonaws.com`  
+* `curl http://$publicDns.$region.compute.amazonaws.com`  
 * `curl -k https://$publicDns.$region.compute.amazonaws.com`  
+
+*note: you may need to navigate to the above address in chrome and go through the 'advanced -> proceed' before the above curl requests work correctly*
 
 ---
 ---
