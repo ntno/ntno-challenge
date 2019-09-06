@@ -1,0 +1,9 @@
+#!/bin/bash
+name='practical_ardinghelli'
+if [[ $(docker ps --filter "name=^/$name$" --format '{{.Names}}') == $name ]] ; then
+    echo "found $name"
+    echo "stopping $name"
+    docker stop $name
+    echo "removing $name"
+    docker rm $name
+fi

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#start container with open ports 443 and 80
+#send logs to the specified cloudwatch log group
+#load specified image
+docker run --log-driver=awslogs --log-opt awslogs-group=${LogGroupName} \
+-p 443:443 \
+-p 80:80 \
+-d \
+${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrRepoName}:${ImageTag}
+

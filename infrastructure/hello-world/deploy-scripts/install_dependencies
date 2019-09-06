@@ -1,0 +1,15 @@
+#!/bin/bash
+#stop the docker service and remove local-kv.db to avoid 'port in use' errors
+sudo service docker stop
+sudo rm /var/lib/docker/network/files/local-kv.db
+
+#restart docker
+sudo service docker start
+
+#load specified image
+cd /home/ec2-user/
+ls -ltra 
+docker load -i app.tar.gz 
+
+
+
