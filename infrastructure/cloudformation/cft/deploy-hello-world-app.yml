@@ -106,15 +106,6 @@ Resources:
                 Action:
                   - 'ecr:GetAuthorizationToken'
                 Resource: '*'
-              - Sid: ReadFromParameterStorePermissions
-                Effect: Allow
-                Action:
-                  - 'ssm:GetParameterHistory'
-                  - 'ssm:GetParametersByPath'
-                  - 'ssm:GetParameters'
-                  - 'ssm:GetParameter'
-                  - 'ssm:DescribeParameters'
-                Resource: '*'                   #TODO - restrict me
   VPC:
     Type: 'AWS::EC2::VPC'
     Properties:
