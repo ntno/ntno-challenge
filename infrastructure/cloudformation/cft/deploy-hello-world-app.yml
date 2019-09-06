@@ -226,18 +226,19 @@ Resources:
           then
             cat << EOF > /home/ec2-user/custom-codedeploy-config.txt
           ---
-          :log_aws_wire: false
+          :log_aws_wire: true
           :log_dir: '/var/log/aws/codedeploy-agent/'
           :pid_dir: '/opt/codedeploy-agent/state/.pid/'
           :program_name: codedeploy-agent
-          :root_dir: '/opt/codedeploy-agent/deployment-root'
-          :verbose: false
+          :root_dir: '/home/ec2-user'
+          :verbose: true
           :wait_between_runs: 1
           :proxy_uri:
           :max_revisions: 5
           EOF
           fi
           --//
+          
           Content-Type: text/x-shellscript; charset="us-ascii"
           MIME-Version: 1.0
           Content-Transfer-Encoding: 7bit
