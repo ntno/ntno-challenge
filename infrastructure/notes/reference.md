@@ -70,6 +70,13 @@ $ docker run -p 80:80 -p 443:443 -d mysite
 * investigate how branch builds would work
 ---
 
+log into amazon console and check the pipeline for build results  
+if the web app built successfully then provision the web app using [deploy-hello-world-app.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/deploy-hello-world-app.yml)  
+connect to the ec2 instance via ssh and manually run the bootstrap config (see `UserData`)
+navigate to https://PUBLIC_IPV4_DNS in the browser
+* `./create-app-deploy-stack.sh`  
+
+
 
 
 `docker build hello-world -t hello-world`

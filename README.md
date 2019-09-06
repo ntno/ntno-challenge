@@ -15,7 +15,7 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
 
 
 **in progress**
-* integrate the deploy template with codedeploy
+* integrate with codedeploy
 
 **todo:**
   * grab certificate from systems manager parameter store and install during ec2 boot - see bootscript in `deploy-hello-world-app.yml`
@@ -59,12 +59,8 @@ connect to codecommit repo following aws instructions
 copy contents of [hello-world](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/hello-world) to the codecommit repo (do not include .git files)  
 push to codecommit  
 
-### Step 4 - (work around until todos are complete)
-log into amazon console and check the pipeline for build results  
-if the web app built successfully then provision the web app using [deploy-hello-world-app.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/deploy-hello-world-app.yml)  
-connect to the ec2 instance via ssh and manually run the bootstrap config (see `UserData`)
-navigate to https://PUBLIC_IPV4_DNS in the browser
-* `./create-app-deploy-stack.sh`  
+### Step 4 
+
 
 ### Step 5
 curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com
