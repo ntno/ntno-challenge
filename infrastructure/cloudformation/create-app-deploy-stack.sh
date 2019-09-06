@@ -1,7 +1,7 @@
 #!/bin/sh
 #create-app-deploy-stack.sh
 templateName="cft/deploy-hello-world-app.yml"
-stackName="ntno-challenge-app-deploy"
+stackName="ntno-challenge-deploy-app"
 
 sshKeyPair="ntno-challenge-key-pair"
 logGroupName="ntno-challenge-docker-container"

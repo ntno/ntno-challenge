@@ -55,7 +55,7 @@ Resources:
   LogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
-      LogGroupName: !Ref LogGroupName
+      LogGroupName: !Sub '${LogGroupName}-${AWS::StackName}'
   Ec2InstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -66,7 +66,7 @@ Resources:
             Principal:
               Service: ec2.amazonaws.com
             Action: 'sts:AssumeRole'
-      RoleName: !Sub '${EcrRepoName}-ec2-service-role'
+      RoleName: !Sub '${EcrRepoName}-ec2-service-role-${AWS::StackName}'
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess      #TODO - restrict me
@@ -165,7 +165,7 @@ Resources:
   Ec2InstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
-      InstanceProfileName: !Sub '${EcrRepoName}-ec2-instance-profile'
+      InstanceProfileName: !Sub '${EcrRepoName}-ec2-instance-profile-${AWS::StackName}'
       Path: /
       Roles:
         - !Ref Ec2InstanceRole
