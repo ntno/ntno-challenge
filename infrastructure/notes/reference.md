@@ -57,6 +57,8 @@ $ docker run -p 80:80 -p 443:443 -d mysite
 * [blank if false cloudformation syntax](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html)
 
 * [cloudformation conditionals syntax](https://ig.nore.me/2018/02/conditionals-in-cloudformation/)
+* [save image as tar.gz for use in codedeploy](https://www.lewuathe.com/embed-docker-image-in-codedeploy-package.html)
+* []
 
 ### TODOs
 * add test stage to pipeline
