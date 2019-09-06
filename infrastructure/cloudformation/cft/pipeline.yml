@@ -16,6 +16,10 @@ Parameters:
   ProjectTag:
     Type: String
     Description: resource tag for organization
+  HostResourceStackName:
+    Type: String
+    Description: name of the stack which provisioned the host resources for ec2 deployment
+    Default: 'deploy-hello-world-app'
 Resources:
   TriggerSNS:
     Type: AWS::SNS::Topic
@@ -55,7 +59,7 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
             Action: 'sts:AssumeRole'
-      RoleName: !Sub 'codebuild-${RepoName}-service-role'
+      RoleName: !Sub 'codebuild-${RepoName}-service-role-${AWS::StackName}'
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
       Policies: 
         - PolicyName: 'CodeBuildPermissions'
@@ -111,6 +115,35 @@ Resources:
                   - 'ecr:DescribeRepositories'
                   - 'ecr:GetAuthorizationToken'
                 Resource: '*'
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codedeploy.amazonaws.com
+            Action: 'sts:AssumeRole'
+      RoleName: !Sub 'codedeploy-${RepoName}-service-role-${AWS::StackName}'
+      Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole'
+      Policies: 
+        - PolicyName: 'CodeDeployPermissions'
+          PolicyDocument: 
+            Version: 2012-10-17
+            Statement:
+              - Sid: ReadArtifactBucketPermissions
+                Action:
+                  - 's3:GetObject'
+                  - 's3:GetObjectVersion'
+                  - 's3:GetBucketAcl'
+                  - 's3:GetBucketLocation'
+                Effect: Allow
+                Resource:
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
   CodePipelineServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -121,7 +154,7 @@ Resources:
             Principal:
               Service: codepipeline.amazonaws.com
             Action: 'sts:AssumeRole'
-      RoleName: !Sub 'codepipeline-${RepoName}-service-role'
+      RoleName: !Sub 'codepipeline-${RepoName}-service-role-${AWS::StackName}'
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
       Policies: 
         - PolicyName: 'CodePipelinePermissions'
@@ -223,6 +256,58 @@ Resources:
         Type: CODEPIPELINE
       Tags: [{Key: domain, Value: !Ref DomainTag}, {Key: project, Value: !Ref ProjectTag}]
       TimeoutInMinutes: 10
+  DeployApplication:
+    Type: AWS::CodeDeploy::Application
+    # Properties: 
+    #   ApplicationName: !Ref RepoName
+    #   ComputePlatform: Server
+  DeploymentGroup:
+    # DependsOn: !Ref DeployApplication
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties: 
+      ApplicationName: !Ref DeployApplication
+      AutoRollbackConfiguration: 
+        Enabled: False
+      # Deployment: 
+      #   Description: 'not sure'
+      #   IgnoreApplicationStopFailures: True 
+      #   Revision: 
+      #     RevisionType: S3
+      #     S3Location: 
+
+
+        # "Deployment":{
+        #   "Description":"First time",
+        #   "IgnoreApplicationStopFailures":"true",
+        #   "Revision":{
+        #     "RevisionType":"S3",
+        #     "S3Location":{
+        #       "Bucket":{
+        #         "Ref":"Bucket"
+        #       },
+        #       "BundleType":"Zip",
+        #       "Key":{
+        #         "Ref":"Key"
+        #       }
+        #     }
+        #   }
+        # },
+
+      # DeploymentConfigName: String
+      # DeploymentGroupName: String
+      DeploymentStyle: 
+          DeploymentOption: WITHOUT_TRAFFIC_CONTROL
+          DeploymentType: IN_PLACE
+      Ec2TagSet:
+        Ec2TagSetList:
+          - Ec2TagGroup:
+            - Key: 'aws:cloudformation:stack-name'
+              Value: !Ref HostResourceStackName
+              Type: KEY_AND_VALUE
+      ServiceRoleArn: !Ref CodeDeployServiceRole
+      # TriggerConfigurations: 
+      #   - TriggerConfig
+
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties: 
