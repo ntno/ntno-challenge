@@ -13,7 +13,7 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
   * docker image is packaged and stored in s3
     * docker image is also stored in elastic container registry for easy retrieval
   * packaged image is deployed to host server
-* automated provisioning of the codecommit/codebuild/codedeploy pipeline - see [pipeline.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)
+* automated provisioning of the codecommit -> codebuild -> codedeploy pipeline - see [pipeline.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/pipeline.yml)
 * automated provisioning of the host server and associated networking resources - see [deploy-hello-world-app.yml](https://github.com/ntno/ntno-challenge/tree/master/infrastructure/cloudformation/cft/deploy-hello-world-app.yml)
   * optional ssh access (via cloudformation parameter, defaults to no access over port 22)
 
@@ -23,8 +23,10 @@ see [infrastructure](https://github.com/ntno/ntno-challenge/tree/master/infrastr
    * future enhancements would be to use an automated cert generator like certbot
 
 **todo:**
+* integrate with automated certificate generator like certbot
 * add test stage to pipeline
-* research how to handle branch builds/deploys/e2e tests
+  * python e2e tests on against running container
+* research how to handle branch builds/deploys
 
 ## Install
 ### Prerequisites
@@ -63,9 +65,10 @@ push to codecommit
 ### Step 4 
 
 
-### Step 5
-curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com
-curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com
+### Step 5  
+
+* curl https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com
+* curl -k https://ec2-13-59-209-203.us-east-2.compute.amazonaws.com
 ---  
 
 ## Coding
