@@ -14,6 +14,10 @@ phases:
       - echo Build started on `date`
       - echo Directory contents are
       - ls -ltra
+      - chmod +x build-scripts/update-certs
+      - ./build-scripts/update-certs
+      - echo Directory contents are
+      - ls -ltra
       - echo Building the Docker image...          
       - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG      
@@ -25,10 +29,12 @@ phases:
       - echo Available docker images
       - docker image ls
       - docker save $IMAGE_REPO_NAME:$IMAGE_TAG | gzip -c > app.tar.gz
-      - echo $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG >> image-name.txt
+      - echo $IMAGE_REPO_NAME:$IMAGE_TAG >> image-name.txt
       - echo Directory contents are
       - ls -ltra
 artifacts:
   files:
-    - '**/*'
-    # - 'app.tar.gz'
+    - 'app.tar.gz'
+    - 'image-name.txt'
+    - 'appspec.yml'
+    - 'deploy-scripts/*'

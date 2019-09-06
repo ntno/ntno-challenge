@@ -8,6 +8,9 @@ hooks:
     - location: deploy-scripts/install_dependencies
       timeout: 300
       runas: ec2-user
+    - location: deploy-scripts/before_install
+      timeout: 300
+      runas: ec2-user
   AfterInstall:
     - location: deploy-scripts/after_install
       timeout: 300
